@@ -1,0 +1,27 @@
+# Dependencies
+/node_modules
+
+# Build artifacts
+/dist
+/build
+/coverage
+
+# Environment files
+.env
+.env.local
+.env.*.local
+!.env.example # Allow an example file to be committed
+
+# TypeScript cache
+.tsbuildinfo
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# OS and Editor files
+.DS_Store # macOS
+.vscode/ # VS Code configuration
+/generated/prisma
