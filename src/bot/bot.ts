@@ -1,0 +1,32 @@
+import "dotenv/config";
+import TelegramBot from "node-telegram-bot-api";
+import { handleMessage } from "./handlers";
+import { todayCommand } from "./commands/today";
+import { weekCommand } from "./commands/week";
+import { monthCommand } from "./commands/month";
+
+export const bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN!, {
+  polling: true,
+});
+
+bot.on("message", async (msg) => {
+  if (!msg.text) return;
+  const text = msg.text;
+
+  if (text.startsWith("/")) {
+    if (text.startsWith("/start")) {
+      await bot.sendMessage(msg.chat.id, "🤖 Finance bot running...");
+    }
+    if (text.startsWith("/today")) {
+      await todayCommand(msg, bot);
+    }
+    if (text.startsWith("/week")) {
+      await weekCommand(msg, bot);
+    }
+    if (text.startsWith("/month")) {
+      await monthCommand(msg, bot);
+    }
+  } else {
+    await handleMessage(msg, bot);
+  }
+});

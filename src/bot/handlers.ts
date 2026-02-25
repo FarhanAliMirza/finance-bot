@@ -1,11 +1,11 @@
-import { bot } from "./index";
+import TelegramBot from "node-telegram-bot-api";
 import { prisma } from "../db/prisma";
 import { parseExpense } from "../services/expenseParser";
+import type { Message } from "node-telegram-bot-api";
 
-bot.on("message", async (msg) => {
-  if (!msg.text || msg.text.startsWith("/")) return;
-
+export async function handleMessage(msg: Message, bot: TelegramBot) {
   try {
+    if (!msg.text) return;
     const expense = await parseExpense(msg.text);
 
     await prisma.expense.create({
@@ -14,19 +14,19 @@ bot.on("message", async (msg) => {
         amount: expense.amount,
         category: expense.category,
         description: expense.description,
-        createdAt: new Date(expense.date)
-      }
+        createdAt: new Date(expense.date),
+      },
     });
 
     await bot.sendMessage(
       msg.chat.id,
-      `✅ Saved: ₹${expense.amount} (${expense.category})`
+      `✅ Saved: ₹${expense.amount} (${expense.category})`,
     );
   } catch (err) {
     console.error(err);
     await bot.sendMessage(
       msg.chat.id,
-      "❌ Couldn't understand the expense. Try again."
+      "❌ Couldn't understand the expense. Try again.",
     );
   }
-});
+}
