@@ -129,6 +129,14 @@ exports.Prisma.ExpenseScalarFieldEnum = {
   createdAt: 'createdAt'
 };
 
+exports.Prisma.UserBudgetScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  monthlyBudget: 'monthlyBudget',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -141,7 +149,8 @@ exports.Prisma.QueryMode = {
 
 
 exports.Prisma.ModelName = {
-  Expense: 'Expense'
+  Expense: 'Expense',
+  UserBudget: 'UserBudget'
 };
 
 /**

@@ -18,6 +18,11 @@ export type PrismaPromise<T> = $Public.PrismaPromise<T>
  * 
  */
 export type Expense = $Result.DefaultSelection<Prisma.$ExpensePayload>
+/**
+ * Model UserBudget
+ * 
+ */
+export type UserBudget = $Result.DefaultSelection<Prisma.$UserBudgetPayload>
 
 /**
  * ##  Prisma Client ʲˢ
@@ -145,6 +150,16 @@ export class PrismaClient<
     * ```
     */
   get expense(): Prisma.ExpenseDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.userBudget`: Exposes CRUD operations for the **UserBudget** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more UserBudgets
+    * const userBudgets = await prisma.userBudget.findMany()
+    * ```
+    */
+  get userBudget(): Prisma.UserBudgetDelegate<ExtArgs, ClientOptions>;
 }
 
 export namespace Prisma {
@@ -579,7 +594,8 @@ export namespace Prisma {
 
 
   export const ModelName: {
-    Expense: 'Expense'
+    Expense: 'Expense',
+    UserBudget: 'UserBudget'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -595,7 +611,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "expense"
+      modelProps: "expense" | "userBudget"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -670,6 +686,80 @@ export namespace Prisma {
           count: {
             args: Prisma.ExpenseCountArgs<ExtArgs>
             result: $Utils.Optional<ExpenseCountAggregateOutputType> | number
+          }
+        }
+      }
+      UserBudget: {
+        payload: Prisma.$UserBudgetPayload<ExtArgs>
+        fields: Prisma.UserBudgetFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.UserBudgetFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserBudgetPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.UserBudgetFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserBudgetPayload>
+          }
+          findFirst: {
+            args: Prisma.UserBudgetFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserBudgetPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.UserBudgetFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserBudgetPayload>
+          }
+          findMany: {
+            args: Prisma.UserBudgetFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserBudgetPayload>[]
+          }
+          create: {
+            args: Prisma.UserBudgetCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserBudgetPayload>
+          }
+          createMany: {
+            args: Prisma.UserBudgetCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.UserBudgetCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserBudgetPayload>[]
+          }
+          delete: {
+            args: Prisma.UserBudgetDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserBudgetPayload>
+          }
+          update: {
+            args: Prisma.UserBudgetUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserBudgetPayload>
+          }
+          deleteMany: {
+            args: Prisma.UserBudgetDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.UserBudgetUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.UserBudgetUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserBudgetPayload>[]
+          }
+          upsert: {
+            args: Prisma.UserBudgetUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserBudgetPayload>
+          }
+          aggregate: {
+            args: Prisma.UserBudgetAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateUserBudget>
+          }
+          groupBy: {
+            args: Prisma.UserBudgetGroupByArgs<ExtArgs>
+            result: $Utils.Optional<UserBudgetGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.UserBudgetCountArgs<ExtArgs>
+            result: $Utils.Optional<UserBudgetCountAggregateOutputType> | number
           }
         }
       }
@@ -782,6 +872,7 @@ export namespace Prisma {
   }
   export type GlobalOmitConfig = {
     expense?: ExpenseOmit
+    userBudget?: UserBudgetOmit
   }
 
   /* Types for Logging */
@@ -1905,6 +1996,1035 @@ export namespace Prisma {
 
 
   /**
+   * Model UserBudget
+   */
+
+  export type AggregateUserBudget = {
+    _count: UserBudgetCountAggregateOutputType | null
+    _avg: UserBudgetAvgAggregateOutputType | null
+    _sum: UserBudgetSumAggregateOutputType | null
+    _min: UserBudgetMinAggregateOutputType | null
+    _max: UserBudgetMaxAggregateOutputType | null
+  }
+
+  export type UserBudgetAvgAggregateOutputType = {
+    monthlyBudget: number | null
+  }
+
+  export type UserBudgetSumAggregateOutputType = {
+    monthlyBudget: number | null
+  }
+
+  export type UserBudgetMinAggregateOutputType = {
+    id: string | null
+    userId: string | null
+    monthlyBudget: number | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type UserBudgetMaxAggregateOutputType = {
+    id: string | null
+    userId: string | null
+    monthlyBudget: number | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type UserBudgetCountAggregateOutputType = {
+    id: number
+    userId: number
+    monthlyBudget: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type UserBudgetAvgAggregateInputType = {
+    monthlyBudget?: true
+  }
+
+  export type UserBudgetSumAggregateInputType = {
+    monthlyBudget?: true
+  }
+
+  export type UserBudgetMinAggregateInputType = {
+    id?: true
+    userId?: true
+    monthlyBudget?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type UserBudgetMaxAggregateInputType = {
+    id?: true
+    userId?: true
+    monthlyBudget?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type UserBudgetCountAggregateInputType = {
+    id?: true
+    userId?: true
+    monthlyBudget?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type UserBudgetAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which UserBudget to aggregate.
+     */
+    where?: UserBudgetWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of UserBudgets to fetch.
+     */
+    orderBy?: UserBudgetOrderByWithRelationInput | UserBudgetOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: UserBudgetWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` UserBudgets from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` UserBudgets.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned UserBudgets
+    **/
+    _count?: true | UserBudgetCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: UserBudgetAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: UserBudgetSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: UserBudgetMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: UserBudgetMaxAggregateInputType
+  }
+
+  export type GetUserBudgetAggregateType<T extends UserBudgetAggregateArgs> = {
+        [P in keyof T & keyof AggregateUserBudget]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateUserBudget[P]>
+      : GetScalarType<T[P], AggregateUserBudget[P]>
+  }
+
+
+
+
+  export type UserBudgetGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: UserBudgetWhereInput
+    orderBy?: UserBudgetOrderByWithAggregationInput | UserBudgetOrderByWithAggregationInput[]
+    by: UserBudgetScalarFieldEnum[] | UserBudgetScalarFieldEnum
+    having?: UserBudgetScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: UserBudgetCountAggregateInputType | true
+    _avg?: UserBudgetAvgAggregateInputType
+    _sum?: UserBudgetSumAggregateInputType
+    _min?: UserBudgetMinAggregateInputType
+    _max?: UserBudgetMaxAggregateInputType
+  }
+
+  export type UserBudgetGroupByOutputType = {
+    id: string
+    userId: string
+    monthlyBudget: number
+    createdAt: Date
+    updatedAt: Date
+    _count: UserBudgetCountAggregateOutputType | null
+    _avg: UserBudgetAvgAggregateOutputType | null
+    _sum: UserBudgetSumAggregateOutputType | null
+    _min: UserBudgetMinAggregateOutputType | null
+    _max: UserBudgetMaxAggregateOutputType | null
+  }
+
+  type GetUserBudgetGroupByPayload<T extends UserBudgetGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<UserBudgetGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof UserBudgetGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], UserBudgetGroupByOutputType[P]>
+            : GetScalarType<T[P], UserBudgetGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type UserBudgetSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    monthlyBudget?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["userBudget"]>
+
+  export type UserBudgetSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    monthlyBudget?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["userBudget"]>
+
+  export type UserBudgetSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    monthlyBudget?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["userBudget"]>
+
+  export type UserBudgetSelectScalar = {
+    id?: boolean
+    userId?: boolean
+    monthlyBudget?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type UserBudgetOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "monthlyBudget" | "createdAt" | "updatedAt", ExtArgs["result"]["userBudget"]>
+
+  export type $UserBudgetPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "UserBudget"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      userId: string
+      monthlyBudget: number
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["userBudget"]>
+    composites: {}
+  }
+
+  type UserBudgetGetPayload<S extends boolean | null | undefined | UserBudgetDefaultArgs> = $Result.GetResult<Prisma.$UserBudgetPayload, S>
+
+  type UserBudgetCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<UserBudgetFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: UserBudgetCountAggregateInputType | true
+    }
+
+  export interface UserBudgetDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['UserBudget'], meta: { name: 'UserBudget' } }
+    /**
+     * Find zero or one UserBudget that matches the filter.
+     * @param {UserBudgetFindUniqueArgs} args - Arguments to find a UserBudget
+     * @example
+     * // Get one UserBudget
+     * const userBudget = await prisma.userBudget.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends UserBudgetFindUniqueArgs>(args: SelectSubset<T, UserBudgetFindUniqueArgs<ExtArgs>>): Prisma__UserBudgetClient<$Result.GetResult<Prisma.$UserBudgetPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one UserBudget that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {UserBudgetFindUniqueOrThrowArgs} args - Arguments to find a UserBudget
+     * @example
+     * // Get one UserBudget
+     * const userBudget = await prisma.userBudget.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends UserBudgetFindUniqueOrThrowArgs>(args: SelectSubset<T, UserBudgetFindUniqueOrThrowArgs<ExtArgs>>): Prisma__UserBudgetClient<$Result.GetResult<Prisma.$UserBudgetPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first UserBudget that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserBudgetFindFirstArgs} args - Arguments to find a UserBudget
+     * @example
+     * // Get one UserBudget
+     * const userBudget = await prisma.userBudget.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends UserBudgetFindFirstArgs>(args?: SelectSubset<T, UserBudgetFindFirstArgs<ExtArgs>>): Prisma__UserBudgetClient<$Result.GetResult<Prisma.$UserBudgetPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first UserBudget that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserBudgetFindFirstOrThrowArgs} args - Arguments to find a UserBudget
+     * @example
+     * // Get one UserBudget
+     * const userBudget = await prisma.userBudget.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends UserBudgetFindFirstOrThrowArgs>(args?: SelectSubset<T, UserBudgetFindFirstOrThrowArgs<ExtArgs>>): Prisma__UserBudgetClient<$Result.GetResult<Prisma.$UserBudgetPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more UserBudgets that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserBudgetFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all UserBudgets
+     * const userBudgets = await prisma.userBudget.findMany()
+     * 
+     * // Get first 10 UserBudgets
+     * const userBudgets = await prisma.userBudget.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const userBudgetWithIdOnly = await prisma.userBudget.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends UserBudgetFindManyArgs>(args?: SelectSubset<T, UserBudgetFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserBudgetPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a UserBudget.
+     * @param {UserBudgetCreateArgs} args - Arguments to create a UserBudget.
+     * @example
+     * // Create one UserBudget
+     * const UserBudget = await prisma.userBudget.create({
+     *   data: {
+     *     // ... data to create a UserBudget
+     *   }
+     * })
+     * 
+     */
+    create<T extends UserBudgetCreateArgs>(args: SelectSubset<T, UserBudgetCreateArgs<ExtArgs>>): Prisma__UserBudgetClient<$Result.GetResult<Prisma.$UserBudgetPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many UserBudgets.
+     * @param {UserBudgetCreateManyArgs} args - Arguments to create many UserBudgets.
+     * @example
+     * // Create many UserBudgets
+     * const userBudget = await prisma.userBudget.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends UserBudgetCreateManyArgs>(args?: SelectSubset<T, UserBudgetCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many UserBudgets and returns the data saved in the database.
+     * @param {UserBudgetCreateManyAndReturnArgs} args - Arguments to create many UserBudgets.
+     * @example
+     * // Create many UserBudgets
+     * const userBudget = await prisma.userBudget.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many UserBudgets and only return the `id`
+     * const userBudgetWithIdOnly = await prisma.userBudget.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends UserBudgetCreateManyAndReturnArgs>(args?: SelectSubset<T, UserBudgetCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserBudgetPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a UserBudget.
+     * @param {UserBudgetDeleteArgs} args - Arguments to delete one UserBudget.
+     * @example
+     * // Delete one UserBudget
+     * const UserBudget = await prisma.userBudget.delete({
+     *   where: {
+     *     // ... filter to delete one UserBudget
+     *   }
+     * })
+     * 
+     */
+    delete<T extends UserBudgetDeleteArgs>(args: SelectSubset<T, UserBudgetDeleteArgs<ExtArgs>>): Prisma__UserBudgetClient<$Result.GetResult<Prisma.$UserBudgetPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one UserBudget.
+     * @param {UserBudgetUpdateArgs} args - Arguments to update one UserBudget.
+     * @example
+     * // Update one UserBudget
+     * const userBudget = await prisma.userBudget.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends UserBudgetUpdateArgs>(args: SelectSubset<T, UserBudgetUpdateArgs<ExtArgs>>): Prisma__UserBudgetClient<$Result.GetResult<Prisma.$UserBudgetPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more UserBudgets.
+     * @param {UserBudgetDeleteManyArgs} args - Arguments to filter UserBudgets to delete.
+     * @example
+     * // Delete a few UserBudgets
+     * const { count } = await prisma.userBudget.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends UserBudgetDeleteManyArgs>(args?: SelectSubset<T, UserBudgetDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more UserBudgets.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserBudgetUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many UserBudgets
+     * const userBudget = await prisma.userBudget.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends UserBudgetUpdateManyArgs>(args: SelectSubset<T, UserBudgetUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more UserBudgets and returns the data updated in the database.
+     * @param {UserBudgetUpdateManyAndReturnArgs} args - Arguments to update many UserBudgets.
+     * @example
+     * // Update many UserBudgets
+     * const userBudget = await prisma.userBudget.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more UserBudgets and only return the `id`
+     * const userBudgetWithIdOnly = await prisma.userBudget.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends UserBudgetUpdateManyAndReturnArgs>(args: SelectSubset<T, UserBudgetUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserBudgetPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one UserBudget.
+     * @param {UserBudgetUpsertArgs} args - Arguments to update or create a UserBudget.
+     * @example
+     * // Update or create a UserBudget
+     * const userBudget = await prisma.userBudget.upsert({
+     *   create: {
+     *     // ... data to create a UserBudget
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the UserBudget we want to update
+     *   }
+     * })
+     */
+    upsert<T extends UserBudgetUpsertArgs>(args: SelectSubset<T, UserBudgetUpsertArgs<ExtArgs>>): Prisma__UserBudgetClient<$Result.GetResult<Prisma.$UserBudgetPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of UserBudgets.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserBudgetCountArgs} args - Arguments to filter UserBudgets to count.
+     * @example
+     * // Count the number of UserBudgets
+     * const count = await prisma.userBudget.count({
+     *   where: {
+     *     // ... the filter for the UserBudgets we want to count
+     *   }
+     * })
+    **/
+    count<T extends UserBudgetCountArgs>(
+      args?: Subset<T, UserBudgetCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], UserBudgetCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a UserBudget.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserBudgetAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends UserBudgetAggregateArgs>(args: Subset<T, UserBudgetAggregateArgs>): Prisma.PrismaPromise<GetUserBudgetAggregateType<T>>
+
+    /**
+     * Group by UserBudget.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserBudgetGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends UserBudgetGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: UserBudgetGroupByArgs['orderBy'] }
+        : { orderBy?: UserBudgetGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, UserBudgetGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetUserBudgetGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the UserBudget model
+   */
+  readonly fields: UserBudgetFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for UserBudget.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__UserBudgetClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the UserBudget model
+   */
+  interface UserBudgetFieldRefs {
+    readonly id: FieldRef<"UserBudget", 'String'>
+    readonly userId: FieldRef<"UserBudget", 'String'>
+    readonly monthlyBudget: FieldRef<"UserBudget", 'Int'>
+    readonly createdAt: FieldRef<"UserBudget", 'DateTime'>
+    readonly updatedAt: FieldRef<"UserBudget", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * UserBudget findUnique
+   */
+  export type UserBudgetFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserBudget
+     */
+    select?: UserBudgetSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserBudget
+     */
+    omit?: UserBudgetOmit<ExtArgs> | null
+    /**
+     * Filter, which UserBudget to fetch.
+     */
+    where: UserBudgetWhereUniqueInput
+  }
+
+  /**
+   * UserBudget findUniqueOrThrow
+   */
+  export type UserBudgetFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserBudget
+     */
+    select?: UserBudgetSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserBudget
+     */
+    omit?: UserBudgetOmit<ExtArgs> | null
+    /**
+     * Filter, which UserBudget to fetch.
+     */
+    where: UserBudgetWhereUniqueInput
+  }
+
+  /**
+   * UserBudget findFirst
+   */
+  export type UserBudgetFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserBudget
+     */
+    select?: UserBudgetSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserBudget
+     */
+    omit?: UserBudgetOmit<ExtArgs> | null
+    /**
+     * Filter, which UserBudget to fetch.
+     */
+    where?: UserBudgetWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of UserBudgets to fetch.
+     */
+    orderBy?: UserBudgetOrderByWithRelationInput | UserBudgetOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for UserBudgets.
+     */
+    cursor?: UserBudgetWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` UserBudgets from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` UserBudgets.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of UserBudgets.
+     */
+    distinct?: UserBudgetScalarFieldEnum | UserBudgetScalarFieldEnum[]
+  }
+
+  /**
+   * UserBudget findFirstOrThrow
+   */
+  export type UserBudgetFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserBudget
+     */
+    select?: UserBudgetSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserBudget
+     */
+    omit?: UserBudgetOmit<ExtArgs> | null
+    /**
+     * Filter, which UserBudget to fetch.
+     */
+    where?: UserBudgetWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of UserBudgets to fetch.
+     */
+    orderBy?: UserBudgetOrderByWithRelationInput | UserBudgetOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for UserBudgets.
+     */
+    cursor?: UserBudgetWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` UserBudgets from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` UserBudgets.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of UserBudgets.
+     */
+    distinct?: UserBudgetScalarFieldEnum | UserBudgetScalarFieldEnum[]
+  }
+
+  /**
+   * UserBudget findMany
+   */
+  export type UserBudgetFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserBudget
+     */
+    select?: UserBudgetSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserBudget
+     */
+    omit?: UserBudgetOmit<ExtArgs> | null
+    /**
+     * Filter, which UserBudgets to fetch.
+     */
+    where?: UserBudgetWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of UserBudgets to fetch.
+     */
+    orderBy?: UserBudgetOrderByWithRelationInput | UserBudgetOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing UserBudgets.
+     */
+    cursor?: UserBudgetWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` UserBudgets from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` UserBudgets.
+     */
+    skip?: number
+    distinct?: UserBudgetScalarFieldEnum | UserBudgetScalarFieldEnum[]
+  }
+
+  /**
+   * UserBudget create
+   */
+  export type UserBudgetCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserBudget
+     */
+    select?: UserBudgetSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserBudget
+     */
+    omit?: UserBudgetOmit<ExtArgs> | null
+    /**
+     * The data needed to create a UserBudget.
+     */
+    data: XOR<UserBudgetCreateInput, UserBudgetUncheckedCreateInput>
+  }
+
+  /**
+   * UserBudget createMany
+   */
+  export type UserBudgetCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many UserBudgets.
+     */
+    data: UserBudgetCreateManyInput | UserBudgetCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * UserBudget createManyAndReturn
+   */
+  export type UserBudgetCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserBudget
+     */
+    select?: UserBudgetSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserBudget
+     */
+    omit?: UserBudgetOmit<ExtArgs> | null
+    /**
+     * The data used to create many UserBudgets.
+     */
+    data: UserBudgetCreateManyInput | UserBudgetCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * UserBudget update
+   */
+  export type UserBudgetUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserBudget
+     */
+    select?: UserBudgetSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserBudget
+     */
+    omit?: UserBudgetOmit<ExtArgs> | null
+    /**
+     * The data needed to update a UserBudget.
+     */
+    data: XOR<UserBudgetUpdateInput, UserBudgetUncheckedUpdateInput>
+    /**
+     * Choose, which UserBudget to update.
+     */
+    where: UserBudgetWhereUniqueInput
+  }
+
+  /**
+   * UserBudget updateMany
+   */
+  export type UserBudgetUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update UserBudgets.
+     */
+    data: XOR<UserBudgetUpdateManyMutationInput, UserBudgetUncheckedUpdateManyInput>
+    /**
+     * Filter which UserBudgets to update
+     */
+    where?: UserBudgetWhereInput
+    /**
+     * Limit how many UserBudgets to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * UserBudget updateManyAndReturn
+   */
+  export type UserBudgetUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserBudget
+     */
+    select?: UserBudgetSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserBudget
+     */
+    omit?: UserBudgetOmit<ExtArgs> | null
+    /**
+     * The data used to update UserBudgets.
+     */
+    data: XOR<UserBudgetUpdateManyMutationInput, UserBudgetUncheckedUpdateManyInput>
+    /**
+     * Filter which UserBudgets to update
+     */
+    where?: UserBudgetWhereInput
+    /**
+     * Limit how many UserBudgets to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * UserBudget upsert
+   */
+  export type UserBudgetUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserBudget
+     */
+    select?: UserBudgetSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserBudget
+     */
+    omit?: UserBudgetOmit<ExtArgs> | null
+    /**
+     * The filter to search for the UserBudget to update in case it exists.
+     */
+    where: UserBudgetWhereUniqueInput
+    /**
+     * In case the UserBudget found by the `where` argument doesn't exist, create a new UserBudget with this data.
+     */
+    create: XOR<UserBudgetCreateInput, UserBudgetUncheckedCreateInput>
+    /**
+     * In case the UserBudget was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<UserBudgetUpdateInput, UserBudgetUncheckedUpdateInput>
+  }
+
+  /**
+   * UserBudget delete
+   */
+  export type UserBudgetDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserBudget
+     */
+    select?: UserBudgetSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserBudget
+     */
+    omit?: UserBudgetOmit<ExtArgs> | null
+    /**
+     * Filter which UserBudget to delete.
+     */
+    where: UserBudgetWhereUniqueInput
+  }
+
+  /**
+   * UserBudget deleteMany
+   */
+  export type UserBudgetDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which UserBudgets to delete
+     */
+    where?: UserBudgetWhereInput
+    /**
+     * Limit how many UserBudgets to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * UserBudget without action
+   */
+  export type UserBudgetDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserBudget
+     */
+    select?: UserBudgetSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserBudget
+     */
+    omit?: UserBudgetOmit<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -1928,6 +3048,17 @@ export namespace Prisma {
   };
 
   export type ExpenseScalarFieldEnum = (typeof ExpenseScalarFieldEnum)[keyof typeof ExpenseScalarFieldEnum]
+
+
+  export const UserBudgetScalarFieldEnum: {
+    id: 'id',
+    userId: 'userId',
+    monthlyBudget: 'monthlyBudget',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type UserBudgetScalarFieldEnum = (typeof UserBudgetScalarFieldEnum)[keyof typeof UserBudgetScalarFieldEnum]
 
 
   export const SortOrder: {
@@ -2069,6 +3200,60 @@ export namespace Prisma {
     createdAt?: DateTimeWithAggregatesFilter<"Expense"> | Date | string
   }
 
+  export type UserBudgetWhereInput = {
+    AND?: UserBudgetWhereInput | UserBudgetWhereInput[]
+    OR?: UserBudgetWhereInput[]
+    NOT?: UserBudgetWhereInput | UserBudgetWhereInput[]
+    id?: StringFilter<"UserBudget"> | string
+    userId?: StringFilter<"UserBudget"> | string
+    monthlyBudget?: IntFilter<"UserBudget"> | number
+    createdAt?: DateTimeFilter<"UserBudget"> | Date | string
+    updatedAt?: DateTimeFilter<"UserBudget"> | Date | string
+  }
+
+  export type UserBudgetOrderByWithRelationInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    monthlyBudget?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type UserBudgetWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    userId?: string
+    AND?: UserBudgetWhereInput | UserBudgetWhereInput[]
+    OR?: UserBudgetWhereInput[]
+    NOT?: UserBudgetWhereInput | UserBudgetWhereInput[]
+    monthlyBudget?: IntFilter<"UserBudget"> | number
+    createdAt?: DateTimeFilter<"UserBudget"> | Date | string
+    updatedAt?: DateTimeFilter<"UserBudget"> | Date | string
+  }, "id" | "userId">
+
+  export type UserBudgetOrderByWithAggregationInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    monthlyBudget?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: UserBudgetCountOrderByAggregateInput
+    _avg?: UserBudgetAvgOrderByAggregateInput
+    _max?: UserBudgetMaxOrderByAggregateInput
+    _min?: UserBudgetMinOrderByAggregateInput
+    _sum?: UserBudgetSumOrderByAggregateInput
+  }
+
+  export type UserBudgetScalarWhereWithAggregatesInput = {
+    AND?: UserBudgetScalarWhereWithAggregatesInput | UserBudgetScalarWhereWithAggregatesInput[]
+    OR?: UserBudgetScalarWhereWithAggregatesInput[]
+    NOT?: UserBudgetScalarWhereWithAggregatesInput | UserBudgetScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"UserBudget"> | string
+    userId?: StringWithAggregatesFilter<"UserBudget"> | string
+    monthlyBudget?: IntWithAggregatesFilter<"UserBudget"> | number
+    createdAt?: DateTimeWithAggregatesFilter<"UserBudget"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"UserBudget"> | Date | string
+  }
+
   export type ExpenseCreateInput = {
     id?: string
     userId: string
@@ -2130,6 +3315,62 @@ export namespace Prisma {
     category?: StringFieldUpdateOperationsInput | string
     description?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type UserBudgetCreateInput = {
+    id?: string
+    userId: string
+    monthlyBudget: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type UserBudgetUncheckedCreateInput = {
+    id?: string
+    userId: string
+    monthlyBudget: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type UserBudgetUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    monthlyBudget?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type UserBudgetUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    monthlyBudget?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type UserBudgetCreateManyInput = {
+    id?: string
+    userId: string
+    monthlyBudget: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type UserBudgetUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    monthlyBudget?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type UserBudgetUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    monthlyBudget?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type StringFilter<$PrismaModel = never> = {
@@ -2252,6 +3493,65 @@ export namespace Prisma {
     _max?: NestedDateTimeFilter<$PrismaModel>
   }
 
+  export type IntFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel>
+    in?: number[] | ListIntFieldRefInput<$PrismaModel>
+    notIn?: number[] | ListIntFieldRefInput<$PrismaModel>
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntFilter<$PrismaModel> | number
+  }
+
+  export type UserBudgetCountOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    monthlyBudget?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type UserBudgetAvgOrderByAggregateInput = {
+    monthlyBudget?: SortOrder
+  }
+
+  export type UserBudgetMaxOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    monthlyBudget?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type UserBudgetMinOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    monthlyBudget?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type UserBudgetSumOrderByAggregateInput = {
+    monthlyBudget?: SortOrder
+  }
+
+  export type IntWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel>
+    in?: number[] | ListIntFieldRefInput<$PrismaModel>
+    notIn?: number[] | ListIntFieldRefInput<$PrismaModel>
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntWithAggregatesFilter<$PrismaModel> | number
+    _count?: NestedIntFilter<$PrismaModel>
+    _avg?: NestedFloatFilter<$PrismaModel>
+    _sum?: NestedIntFilter<$PrismaModel>
+    _min?: NestedIntFilter<$PrismaModel>
+    _max?: NestedIntFilter<$PrismaModel>
+  }
+
   export type StringFieldUpdateOperationsInput = {
     set?: string
   }
@@ -2266,6 +3566,14 @@ export namespace Prisma {
 
   export type DateTimeFieldUpdateOperationsInput = {
     set?: Date | string
+  }
+
+  export type IntFieldUpdateOperationsInput = {
+    set?: number
+    increment?: number
+    decrement?: number
+    multiply?: number
+    divide?: number
   }
 
   export type NestedStringFilter<$PrismaModel = never> = {
@@ -2360,6 +3668,22 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedDateTimeFilter<$PrismaModel>
     _max?: NestedDateTimeFilter<$PrismaModel>
+  }
+
+  export type NestedIntWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel>
+    in?: number[] | ListIntFieldRefInput<$PrismaModel>
+    notIn?: number[] | ListIntFieldRefInput<$PrismaModel>
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntWithAggregatesFilter<$PrismaModel> | number
+    _count?: NestedIntFilter<$PrismaModel>
+    _avg?: NestedFloatFilter<$PrismaModel>
+    _sum?: NestedIntFilter<$PrismaModel>
+    _min?: NestedIntFilter<$PrismaModel>
+    _max?: NestedIntFilter<$PrismaModel>
   }
 
 

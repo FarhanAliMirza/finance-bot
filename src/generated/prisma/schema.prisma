@@ -21,3 +21,11 @@ model Expense {
   description String
   createdAt   DateTime @default(now())
 }
+
+model UserBudget {
+  id            String   @id @default(uuid())
+  userId        String   @unique
+  monthlyBudget Int
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
