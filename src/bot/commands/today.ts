@@ -2,6 +2,7 @@ import TelegramBot from "node-telegram-bot-api";
 import { getExpensesBetween } from "../../db/expenses";
 import { today } from "../../utils/dates";
 import type { Message } from "node-telegram-bot-api";
+import { Expense } from "@prisma/client";
 
 export async function todayCommand(msg: Message, bot: TelegramBot) {
   const userId = msg.from?.id?.toString();
@@ -19,17 +20,17 @@ export async function todayCommand(msg: Message, bot: TelegramBot) {
 
   // List of expenses
   const expenseList = expenses
-    .map((e) => `• ₹${e.amount} (${e.category}) - ${e.description}`)
+    .map((e: Expense) => `• ₹${e.amount} (${e.category}) - ${e.description}`)
     .join("\n");
 
   // Largest spend
   const largest = expenses.reduce(
-    (max, e) => (e.amount > max.amount ? e : max),
+    (max: Expense, e: Expense) => (e.amount > max.amount ? e : max),
     expenses[0],
   );
 
   // Summary
-  const total = expenses.reduce((sum, e) => sum + e.amount, 0);
+  const total = expenses.reduce((sum: number, e: Expense) => sum + e.amount, 0);
   const count = expenses.length;
   const dates = today();
   const summary = `🗓️ Today (${dates})\n\n${expenseList}\n\n💸 Largest spend: ₹${largest.amount} (${largest.category})\n📊 Total spent: ₹${total}\n🔢 Transactions: ${count}`;

@@ -2,6 +2,8 @@ import TelegramBot from "node-telegram-bot-api";
 import { getExpensesBetween } from "../../db/expenses";
 import { startOfMonth, today } from "../../utils/dates";
 import type { Message } from "node-telegram-bot-api";
+import { Expense } from "@prisma/client";
+
 
 export async function monthCommand(msg: Message, bot: TelegramBot) {
   const userId = msg.from?.id?.toString();
@@ -27,11 +29,11 @@ export async function monthCommand(msg: Message, bot: TelegramBot) {
     .join("\n");
 
   const largest = expenses.reduce(
-    (max, e) => (e.amount > max.amount ? e : max),
+    (max: Expense, e: Expense) => (e.amount > max.amount ? e : max),
     expenses[0],
   );
 
-  const total = expenses.reduce((sum, e) => sum + e.amount, 0);
+  const total = expenses.reduce((sum: number, e: Expense) => sum + e.amount, 0);
   const startDate = new Date(start);
   const endDate = new Date(end);
   const days =
