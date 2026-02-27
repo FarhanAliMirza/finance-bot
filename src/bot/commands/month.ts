@@ -2,7 +2,7 @@ import TelegramBot from "node-telegram-bot-api";
 import { getExpensesBetween } from "../../db/expenses";
 import { startOfMonth, today } from "../../utils/dates";
 import type { Message } from "node-telegram-bot-api";
-import { Expense } from "@prisma/client";
+import { Expense } from "../../../generated/prisma";
 
 
 export async function monthCommand(msg: Message, bot: TelegramBot) {
