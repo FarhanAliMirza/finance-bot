@@ -15,3 +15,8 @@ export function startOfMonth() {
   d.setDate(1);
   return d.toISOString().split("T")[0];
 }
+
+export function monthName(){
+  const d = new Date();
+  return d.toLocaleString("en-US", { month: "long" });
+}

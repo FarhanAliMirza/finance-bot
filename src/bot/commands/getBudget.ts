@@ -1,6 +1,6 @@
 import TelegramBot from "node-telegram-bot-api";
 import { getUserBudget } from "../../db/budget";
-import { today, startOfMonth } from "../../utils/dates";
+import { getBudgetSummary } from "../../services/budgetService";
 import type { Message } from "node-telegram-bot-api";
 
 export async function budgetCommand(msg: Message, bot: TelegramBot) {
@@ -14,7 +14,7 @@ export async function budgetCommand(msg: Message, bot: TelegramBot) {
     await bot.sendMessage(msg.chat.id, "No budget set ! Set budget with /setBudget (amount)");
     return;
   }
-  const summary = `🗓️ Monthly Budget \n\n₹${budget.monthlyBudget}`;
+  const summary = await getBudgetSummary(userId, "req") || "";
 
   await bot.sendMessage(msg.chat.id, summary);
 }
