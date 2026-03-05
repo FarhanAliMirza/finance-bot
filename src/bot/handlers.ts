@@ -20,7 +20,7 @@ export async function handleMessage(msg: Message, bot: TelegramBot) {
 
     await bot.sendMessage(
       msg.chat.id,
-      `✅ Saved: ₹${expense.amount} (${expense.category})`,
+      `✅ Spent: ₹${expense.amount} (${expense.category})`,
     );
   } catch (err) {
     console.error(err);
