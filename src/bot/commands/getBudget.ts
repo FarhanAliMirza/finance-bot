@@ -11,10 +11,13 @@ export async function budgetCommand(msg: Message, bot: TelegramBot) {
   }
   const budget = await getUserBudget(userId);
   if (!budget) {
-    await bot.sendMessage(msg.chat.id, "No budget set ! Set budget with /setBudget (amount)");
+    await bot.sendMessage(
+      msg.chat.id,
+      "No budget set ! Set budget with /setBudget (amount)",
+    );
     return;
   }
-  const summary = await getBudgetSummary(userId, "req") || "";
+  const summary = (await getBudgetSummary(userId, "req")) || "";
 
   await bot.sendMessage(msg.chat.id, summary);
 }

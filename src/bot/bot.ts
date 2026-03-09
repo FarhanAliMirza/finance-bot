@@ -6,6 +6,7 @@ import { weekCommand } from "./commands/week";
 import { monthCommand } from "./commands/month";
 import { budgetCommand } from "./commands/getBudget";
 import { setBudgetCommand } from "./commands/setBudget";
+import { lastCommand } from "./commands/last";
 
 export const bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN!, {
   polling: true,
@@ -33,6 +34,9 @@ bot.on("message", async (msg) => {
     }
     if (text.startsWith("/setBudget")) {
       await setBudgetCommand(msg, bot);
+    }
+    if (text.startsWith("/last")) {
+      await lastCommand(msg, bot);
     }
   } else {
     await handleMessage(msg, bot);
