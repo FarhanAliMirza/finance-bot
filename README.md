@@ -16,7 +16,8 @@
 - 📊 **Smart Analytics** - View expenses by day, week, or month with detailed breakdowns
 - 📈 **Category Tracking** - Automatically categorize expenses (Food, Transport, Shopping, Bills, Entertainment, Other)
 - ⚡ **Real-time Feedback** - Instant confirmation when expenses are logged
-- 🚨 **Budget Alerts** - Get notified when approaching your monthly limit
+- 🗑️ **Quick Undo** - Delete your most recent expense with `/delete`
+- 🚨 **Budget Alerts** - Get notified when approaching or exceeding your monthly limit
 
 ### 👾 Live Link : [Finance Tracker Bot](https://t.me/farhans_finance_tracker_bot)
 
@@ -47,12 +48,13 @@
    ```
 
 3. **Set up environment variables**
-   Create a `.env` file:
+   Copy [`.env.example`](.env.example) to `.env` and fill in values:
 
    ```bash
    TELEGRAM_BOT_TOKEN=your_telegram_token
-   GOOGLE_API_KEY=your_gemini_api_key
+   GEMINI_API_KEY=your_gemini_api_key
    DATABASE_URL=your_postgresql_connection_string
+   DIRECT_URL=your_postgresql_direct_url
    ```
 
 4. **Set up the database**
@@ -68,6 +70,8 @@
    # or
    npm start          # Production mode
    ```
+
+For feature work while live users stay on production, see [DEVELOPMENT.md](DEVELOPMENT.md) (feature branches, separate test bot/DB, merge and redeploy).
 
 ---
 
@@ -185,8 +189,9 @@ View your monthly budget and current spending status:
 
 **Budget Status Indicators:**
 
-- `💰 You're on track with your budget` (< 50% used)
-- `🚨 Careful — you're approaching your monthly budget limit` (> 80% used)
+- `💰 You're on track with your budget.` (< 50% used)
+- `🚨 Careful — you're approaching your monthly budget limit.` (> 80% used)
+- `‼️ You're over budget.` (> 100% used)
 
 ```
 Example Response:
@@ -217,12 +222,44 @@ Set or update your monthly budget:
 
 ---
 
-#### `/last` - Recent Expenses 📋
+#### `/last` - Last 5 Expenses 📋
 
-View your most recent expenses in a formatted list:
+View your **last 5** expenses (newest first) plus a total of those entries:
 
 - Helps you quickly verify recent transactions
-- Shows the latest entries first
+- Shows up to 5 of the latest entries
+- Includes a combined total for the listed expenses
+
+```
+Example Response:
+🧾 Last 5 expenses:
+
+- ₹150 (Food) - Coffee
+- ₹500 (Transport) - Taxi
+- ₹250 (Entertainment) - Movie ticket
+- ₹1200 (Shopping) - Shoes
+- ₹80 (Food) - Snacks
+
+💸 Total: 2180
+```
+
+---
+
+#### `/delete` - Delete Last Expense 🗑️
+
+Deletes your **most recent** expense:
+
+- Useful for undoing a mistaken entry
+- Always targets the latest expense for your user
+
+**Responses:**
+
+- Success:
+  ```
+  📝 Expense deleted:
+  - ₹150 (Food) - Coffee
+  ```
+- Nothing to delete: `📝 You don't have any expenses to delete.`
 
 ---
 
@@ -251,14 +288,16 @@ finance-bot/
 │   │       ├── month.ts         # Monthly analytics
 │   │       ├── getBudget.ts     # View budget
 │   │       ├── setBudget.ts     # Set/update budget
-│   │       └── last.ts          # Recent expenses
+│   │       ├── last.ts          # Last 5 expenses
+│   │       └── delete.ts        # Delete most recent expense
 │   ├── ai/
 │   │   ├── gemini.ts            # Google Gemini API integration
 │   │   └── prompts.ts           # AI prompt templates
 │   ├── services/
 │   │   ├── expenseParser.ts     # AI-powered expense extraction
 │   │   ├── budgetService.ts     # Budget calculations & status
-│   │   └── lastExpenseService.ts # Recent expenses formatting
+│   │   ├── lastExpenseService.ts # Recent expenses formatting
+│   │   └── deleteExpenseService.ts # Delete most recent expense
 │   ├── db/
 │   │   ├── prisma.ts            # Prisma client setup
 │   │   ├── budget.ts            # Budget DB operations
@@ -273,6 +312,8 @@ finance-bot/
 │   └── migrations/              # Database migrations
 ├── package.json
 ├── tsconfig.json
+├── .env.example                 # Env var template (no secrets)
+├── DEVELOPMENT.md               # Feature-branch workflow for live production
 └── README.md
 ```
 
@@ -368,13 +409,15 @@ Stores user's monthly budget:
 
 The bot provides user-friendly error messages:
 
-| Scenario                | Response                                             |
-| ----------------------- | ---------------------------------------------------- |
-| Invalid expense message | `❌ Couldn't understand the expense. Try again.`     |
-| No budget set           | `No budget set! Set budget with /setBudget (amount)` |
-| Invalid budget amount   | `Invalid budget amount. Usage: /setBudget (amount)`  |
-| User not found          | `User not found.`                                    |
-| No expenses in period   | `No expenses recorded [today/this week/this month].` |
+| Scenario                | Response                                                   |
+| ----------------------- | ---------------------------------------------------------- |
+| Invalid expense message | `❌ Couldn't understand the expense. Try again.`           |
+| No budget set           | `No budget set ! Set budget with /setBudget (amount)`      |
+| Invalid budget amount   | `Invalid budget amount. Usage: /setBudget (amount)`        |
+| User not found          | `User not found.`                                          |
+| No expenses in period   | `No expenses recorded [today/this week/this month].`       |
+| No recent expenses      | `No expenses found.`                                       |
+| Nothing to delete       | `📝 You don't have any expenses to delete.`                |
 
 ---
 
@@ -395,7 +438,8 @@ The bot understands various formats:
 - Set a realistic monthly budget with `/setBudget`
 - Check `/week` to catch overspending early
 - Review `/month` analytics to spot spending patterns
-- Act on `🚨` alerts before hitting the limit
+- Use `/last` to double-check recent entries, and `/delete` to undo a mistake
+- Act on `🚨` / `‼️` alerts before (or after) hitting the limit
 
 ### Categories
 
@@ -478,8 +522,8 @@ ISC
 
 Created with ❤️ for smarter expense tracking.
 
-**Need help?** Check the `/help` command or review this README.
+**Need help?** Review this README for commands and usage.
 
 ---
 
-_Last updated: March 2026_ 🚀
+_Last updated: August 2026_ 🚀
