@@ -10,6 +10,7 @@
 
 ### ✨ Key Features
 
+- 👋 **First-run onboarding** - New users get a short walkthrough (features + budget setup) once
 - 🤖 **AI-Powered Expense Parsing** - Type expenses naturally, and AI understands them
 - 💾 **Persistent Storage** - All expenses stored securely in PostgreSQL
 - 💰 **Budget Management** - Set monthly budgets and get warnings when you're overspending
@@ -77,6 +78,16 @@ For feature work while live users stay on production, see [DEVELOPMENT.md](DEVEL
 
 ## 📱 Commands & Usage
 
+### 👋 First-run onboarding
+
+New users (no prior expenses/budget and onboarding not finished) are guided once:
+
+1. Welcome and what the bot does
+2. How to log expenses in natural language (with examples)
+3. Set a monthly budget — reply with a number or `/setBudget <amount>`
+
+After that, free-text messages go to the AI expense parser as usual. Returning users skip onboarding; `/start` shows a short welcome.
+
 ### 💬 Logging Expenses
 
 Simply **send any natural language message** describing your expense:
@@ -100,6 +111,11 @@ The bot will:
 ---
 
 ### 🔧 Available Commands
+
+#### `/start` - Start / welcome 👋
+
+- New users: begins (or restarts) the onboarding walkthrough
+- Returning users: short welcome; normal expense logging continues
 
 #### `/today` - Today's Expenses 📅
 

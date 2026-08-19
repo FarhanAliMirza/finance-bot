@@ -29,3 +29,19 @@ model UserBudget{
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
+
+enum OnboardingStep {
+  WELCOME
+  EXPENSE_INTRO
+  SET_BUDGET
+  COMPLETED
+}
+
+model UserOnboarding {
+  id          String         @id @default(uuid())
+  userId      String         @unique
+  step        OnboardingStep @default(WELCOME)
+  completedAt DateTime?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+}
