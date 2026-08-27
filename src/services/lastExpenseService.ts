@@ -1,4 +1,5 @@
 import { prisma } from "../db/prisma";
+import { formatCategoryWithMethod } from "../utils/paymentMethods";
 
 export async function getLastExpensesMessage(userId: string): Promise<string> {
   const expenses = await prisma.expense.findMany({
@@ -14,7 +15,7 @@ export async function getLastExpensesMessage(userId: string): Promise<string> {
   const expenseLines = expenses
     .map(
       (expense) =>
-        `- ₹${expense.amount} (${expense.category}) - ${expense.description}`,
+        `- ₹${expense.amount} (${formatCategoryWithMethod(expense.category, expense.paymentMethod)}) - ${expense.description}`,
     )
     .join("\n");
 

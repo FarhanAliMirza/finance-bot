@@ -13,13 +13,20 @@ datasource db {
   provider = "postgresql"
 }
 
+enum PaymentMethod {
+  Cash
+  Card
+  UPI
+}
+
 model Expense {
-  id          String   @id @default(uuid())
-  userId      String
-  amount      Float
-  category    String
-  description String
-  createdAt   DateTime @default(now())
+  id            String         @id @default(uuid())
+  userId        String
+  amount        Float
+  category      String
+  description   String
+  paymentMethod PaymentMethod?
+  createdAt     DateTime       @default(now())
 }
 
 model UserBudget{
@@ -44,4 +51,12 @@ model UserOnboarding {
   completedAt DateTime?
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt
+}
+
+model UserSettings {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  timezone  String   @default("Asia/Kolkata")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

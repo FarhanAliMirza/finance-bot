@@ -1,9 +1,10 @@
 import TelegramBot from "node-telegram-bot-api";
 import { getExpensesBetween } from "../../db/expenses";
-import { startOfMonth, today } from "../../utils/dates";
+import { getUserTimeZone } from "../../db/userSettings";
+import { monthCalendar, monthRange, startOfMonth, today } from "../../utils/dates";
 import type { Message } from "node-telegram-bot-api";
-import { Expense } from "../../../generated/prisma";
-
+import { formatPaymentMethodBreakdown } from "../../utils/paymentMethodMessages";
+import { exportDownloadKeyboard } from "../exportHandlers";
 
 export async function monthCommand(msg: Message, bot: TelegramBot) {
   const userId = msg.from?.id?.toString();
@@ -11,12 +12,16 @@ export async function monthCommand(msg: Message, bot: TelegramBot) {
     await bot.sendMessage(msg.chat.id, "User not found.");
     return;
   }
-  const start = startOfMonth() + "T00:00:00.000Z";
-  const end = today() + "T00:00:00.000Z";
-  const expenses = await getExpensesBetween(userId, start, end);
+  const timeZone = await getUserTimeZone(userId);
+  const { startInclusive, endExclusive } = monthRange(timeZone);
+  const expenses = await getExpensesBetween(
+    userId,
+    startInclusive,
+    endExclusive,
+  );
 
   if (!expenses || expenses.length === 0) {
-    await bot.sendMessage(msg.chat.id, "No expenses recorded this week.");
+    await bot.sendMessage(msg.chat.id, "No expenses recorded this month.");
     return;
   }
 
@@ -29,21 +34,19 @@ export async function monthCommand(msg: Message, bot: TelegramBot) {
     .join("\n");
 
   const largest = expenses.reduce(
-    (max: Expense, e: Expense) => (e.amount > max.amount ? e : max),
+    (max, e) => (e.amount > max.amount ? e : max),
     expenses[0],
   );
 
-  const total = expenses.reduce((sum: number, e: Expense) => sum + e.amount, 0);
-  const startDate = new Date(start);
-  const endDate = new Date(end);
-  const days =
-    Math.floor(
-      (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24),
-    ) + 1;
-  const dailyAvg = (total / days).toFixed(2);
+  const total = expenses.reduce((sum, e) => sum + e.amount, 0);
+  const { dayOfMonth } = monthCalendar(timeZone);
+  const dailyAvg = (total / dayOfMonth).toFixed(2);
   const count = expenses.length;
-  const dates = `${start.split("T")[0]} - ${end.split("T")[0]}`;
-  const summary = `🗓️ Month (${dates})\n\nCategory Breakdown:\n${categoryBreakdown}\n\n📊 Total spent: ₹${total}\n🔢 Transactions: ${count}\n💸 Largest spend: ₹${largest.amount} (${largest.category}) - ${largest.description}\n📈 Daily average: ₹${dailyAvg}`;
+  const dates = `${startOfMonth(timeZone)} - ${today(timeZone)}`;
+  const methodBlock = formatPaymentMethodBreakdown(expenses);
+  const summary = `🗓️ Month (${dates})\n\nCategory Breakdown:\n${categoryBreakdown}\n\n📊 Total spent: ₹${total}\n🔢 Transactions: ${count}\n💸 Largest spend: ₹${largest.amount} (${largest.category}) - ${largest.description}\n📈 Daily average: ₹${dailyAvg}${methodBlock ? `\n\n${methodBlock}` : ""}`;
 
-  await bot.sendMessage(msg.chat.id, summary);
+  await bot.sendMessage(msg.chat.id, summary, {
+    reply_markup: exportDownloadKeyboard({ kind: "month" }, userId, msg.chat.id),
+  });
 }

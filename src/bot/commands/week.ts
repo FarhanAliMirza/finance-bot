@@ -1,8 +1,10 @@
 import TelegramBot from "node-telegram-bot-api";
 import { getExpensesBetween } from "../../db/expenses";
-import { startOfWeek, today } from "../../utils/dates";
+import { getUserTimeZone } from "../../db/userSettings";
+import { startOfWeek, today, weekRange } from "../../utils/dates";
 import type { Message } from "node-telegram-bot-api";
-import { Expense } from "../../../generated/prisma";
+import { formatPaymentMethodBreakdown } from "../../utils/paymentMethodMessages";
+import { exportDownloadKeyboard } from "../exportHandlers";
 
 export async function weekCommand(msg: Message, bot: TelegramBot) {
   const userId = msg.from?.id?.toString();
@@ -10,9 +12,13 @@ export async function weekCommand(msg: Message, bot: TelegramBot) {
     await bot.sendMessage(msg.chat.id, "User not found.");
     return;
   }
-  const start = startOfWeek() + "T00:00:00.000Z";
-  const end = today() + "T00:00:00.000Z";
-  const expenses = await getExpensesBetween(userId, start, end);
+  const timeZone = await getUserTimeZone(userId);
+  const { startInclusive, endExclusive } = weekRange(timeZone);
+  const expenses = await getExpensesBetween(
+    userId,
+    startInclusive,
+    endExclusive,
+  );
 
   if (!expenses || expenses.length === 0) {
     await bot.sendMessage(msg.chat.id, "No expenses recorded this week.");
@@ -28,13 +34,16 @@ export async function weekCommand(msg: Message, bot: TelegramBot) {
     .join("\n");
 
   const largest = expenses.reduce(
-    (max: Expense, e: Expense) => (e.amount > max.amount ? e : max),
+    (max, e) => (e.amount > max.amount ? e : max),
     expenses[0],
   );
-  const total = expenses.reduce((sum: number, e: Expense) => sum + e.amount, 0);
+  const total = expenses.reduce((sum, e) => sum + e.amount, 0);
   const count = expenses.length;
-  const dates = `${start.split("T")[0]} - ${end.split("T")[0]}`;
-  const summary = `🗓️ Week (${dates})\n\nCategory Breakdown:\n${categoryBreakdown}\n\n📊 Total spent: ₹${total}\n🔢 Transactions: ${count}\n💸 Largest spend: ₹${largest.amount} (${largest.category}) - ${largest.description}`;
+  const dates = `${startOfWeek(timeZone)} - ${today(timeZone)}`;
+  const methodBlock = formatPaymentMethodBreakdown(expenses);
+  const summary = `🗓️ Week (${dates})\n\nCategory Breakdown:\n${categoryBreakdown}\n\n📊 Total spent: ₹${total}\n🔢 Transactions: ${count}\n💸 Largest spend: ₹${largest.amount} (${largest.category}) - ${largest.description}${methodBlock ? `\n\n${methodBlock}` : ""}`;
 
-  await bot.sendMessage(msg.chat.id, summary);
+  await bot.sendMessage(msg.chat.id, summary, {
+    reply_markup: exportDownloadKeyboard({ kind: "week" }, userId, msg.chat.id),
+  });
 }

@@ -1,50 +1,58 @@
-import { getUserBudget, setUserBudget, updateUserBudget } from "../db/budget";
+import { getUserBudget } from "../db/budget";
 import { getExpensesBetween } from "../db/expenses";
-import { today, startOfMonth, monthName } from "../utils/dates";
+import { getUserTimeZone } from "../db/userSettings";
+import { monthName, monthCalendar, monthRange } from "../utils/dates";
+import { computeBudgetPace, type BudgetPace } from "../utils/budgetPace";
+import { formatBudgetCommandReply } from "../utils/budgetMessages";
 import { Expense } from "../../generated/prisma";
 
-export async function getBudgetSummary(userId: string, type: "req" | "msg") {
+export interface MonthBudgetSnapshot {
+  monthlyBudget: number;
+  month: string;
+  pace: BudgetPace;
+}
+
+export async function getMonthBudgetSnapshot(
+  userId: string,
+): Promise<MonthBudgetSnapshot | null> {
   const budgetOb = await getUserBudget(userId);
-  if (!budgetOb) {
-    if (type === "req") {
-      return "No budget set ! Set budget with /setBudget (amount)";
-    } else {
-      return;
-    }
+  if (!budgetOb) return null;
+
+  const timeZone = await getUserTimeZone(userId);
+  const monthlyBudget = budgetOb.monthlyBudget;
+  const { startInclusive, endExclusive } = monthRange(timeZone);
+  const expenses = await getExpensesBetween(
+    userId,
+    startInclusive,
+    endExclusive,
+  );
+  const spent = (expenses ?? []).reduce(
+    (sum: number, e: Expense) => sum + e.amount,
+    0,
+  );
+  const { dayOfMonth, daysInMonth } = monthCalendar(timeZone);
+  const pace = computeBudgetPace({
+    spent,
+    monthlyBudget,
+    dayOfMonth,
+    daysInMonth,
+  });
+
+  return {
+    monthlyBudget,
+    month: monthName(timeZone),
+    pace,
+  };
+}
+
+export async function getBudgetSummary(userId: string): Promise<string> {
+  const snapshot = await getMonthBudgetSnapshot(userId);
+  if (!snapshot) {
+    return "No budget set ! Set budget with /setBudget (amount)";
   }
-  const budget = budgetOb.monthlyBudget;
-  let expensesSummary;
-  let comment;
-  const start = startOfMonth() + "T00:00:00.000Z";
-  const end = today() + "T00:00:00.000Z";
-  const month = monthName();
-  const expenses = await getExpensesBetween(userId, start, end);
-  const userBudget = `🗓️ Budget for the month of ${month} is : \n₹${budget} \n\n`;
-  if (!expenses || expenses.length === 0) {
-    expensesSummary = `No expenses recorded this month.`;
-  }
-  if (expenses && expenses.length > 0) {
-    const total = expenses.reduce(
-      (sum: number, e: Expense) => sum + e.amount,
-      0,
-    );
-    let remaining = budget - total;
-    if (remaining < 0) remaining = 0;
-    const usage = (total / budget) * 100;
-    expensesSummary = `Current Spendings : ₹${total} \nBudget Remaining: ₹${remaining} \nUsage: ${usage.toFixed(2)}%`;
-    if (usage < 50) {
-      comment = `\n\n💰 You’re on track with your budget.`;
-    }
-    if (usage > 80) {
-      comment = `\n\n🚨 Careful — you’re approaching your monthly budget limit.`;
-    }
-    if (usage > 100) {
-      comment = `\n\n‼️ You’re over budget.`;
-    }
-  }
-  if (type === "req") {
-    return `${userBudget}${expensesSummary}${comment}`;
-  } else {
-    return `${expensesSummary}`;
-  }
+  return formatBudgetCommandReply(
+    snapshot.month,
+    snapshot.monthlyBudget,
+    snapshot.pace,
+  );
 }

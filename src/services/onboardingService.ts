@@ -1,5 +1,5 @@
 import TelegramBot from "node-telegram-bot-api";
-import type { Message } from "node-telegram-bot-api";
+import type { CallbackQuery, Message } from "node-telegram-bot-api";
 import { OnboardingStep } from "../../generated/prisma";
 import {
   getUserOnboarding,
@@ -8,6 +8,18 @@ import {
   userHasPriorActivity,
 } from "../db/onboarding";
 import { getUserBudget, setUserBudget, updateUserBudget } from "../db/budget";
+
+export const SKIP_BUDGET_CALLBACK_DATA = "onb:skip";
+
+const EMPTY_KEYBOARD: TelegramBot.InlineKeyboardMarkup = {
+  inline_keyboard: [],
+};
+
+const SKIP_BUDGET_KEYBOARD: TelegramBot.InlineKeyboardMarkup = {
+  inline_keyboard: [
+    [{ text: "Skip", callback_data: SKIP_BUDGET_CALLBACK_DATA }],
+  ],
+};
 
 const WELCOME_TEXT = `👋 Welcome to Finance Bot!
 
@@ -26,12 +38,18 @@ Just send a normal sentence. Examples:
 
 I'll pick out the amount, category, and description.
 
-Next: set your monthly budget so I can keep you on track.`;
+Next: you can set a monthly budget, or skip and do it later.`;
 
-const BUDGET_PROMPT_TEXT = `💰 Set your monthly budget
+export const BUDGET_PROMPT_TEXT = `💰 Set your monthly budget (optional)
 
 Reply with a number (e.g. 15000), or use:
-/setBudget 15000`;
+/setBudget 15000
+
+Or tap Skip (or type skip) to continue without a budget.`;
+
+const BUDGET_RETRY_TEXT = `This step is optional.
+
+Reply with a number like 15000, /setBudget 15000, or Skip.`;
 
 const COMPLETE_TEXT = `✅ You're all set!
 
@@ -41,6 +59,19 @@ Commands:
 /today /week /month — spending summaries
 /budget — budget status
 /setBudget <amount> — update budget
+/last — recent expenses
+/delete — undo last expense`;
+
+export const SKIPPED_COMPLETE_TEXT = `✅ You're all set!
+
+You can set a monthly budget later with /setBudget.
+
+From now on, send expenses in plain English anytime.
+
+Commands:
+/today /week /month — spending summaries
+/budget — budget status
+/setBudget <amount> — set budget
 /last — recent expenses
 /delete — undo last expense`;
 
@@ -74,7 +105,7 @@ export async function startOnboarding(
   await bot.sendMessage(msg.chat.id, WELCOME_TEXT);
   await bot.sendMessage(msg.chat.id, EXPENSE_INTRO_TEXT);
   await upsertUserOnboarding(userId, OnboardingStep.SET_BUDGET);
-  await bot.sendMessage(msg.chat.id, BUDGET_PROMPT_TEXT);
+  await sendBudgetPrompt(msg.chat.id, bot);
 }
 
 export async function handleStartCommand(
@@ -95,7 +126,11 @@ export async function handleStartCommand(
   await startOnboarding(msg, bot);
 }
 
-function parseBudgetAmount(text: string): number | null {
+export function isSkipBudgetText(text: string): boolean {
+  return text.trim().toLowerCase() === "skip";
+}
+
+export function parseBudgetAmount(text: string): number | null {
   const trimmed = text.trim();
   const fromCommand = trimmed.match(/^\/setBudget(?:@\w+)?\s+(\d+)/i);
   if (fromCommand) {
@@ -109,6 +144,45 @@ function parseBudgetAmount(text: string): number | null {
   }
 
   return null;
+}
+
+async function sendBudgetPrompt(chatId: number, bot: TelegramBot): Promise<void> {
+  await bot.sendMessage(chatId, BUDGET_PROMPT_TEXT, {
+    reply_markup: SKIP_BUDGET_KEYBOARD,
+  });
+}
+
+async function answerCallback(
+  bot: TelegramBot,
+  query: CallbackQuery,
+  text?: string,
+) {
+  try {
+    await bot.answerCallbackQuery(query.id, text ? { text } : {});
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+async function removeSkipKeyboard(
+  bot: TelegramBot,
+  chatId: number,
+  messageId: number,
+) {
+  try {
+    await bot.editMessageReplyMarkup(EMPTY_KEYBOARD, {
+      chat_id: chatId,
+      message_id: messageId,
+    });
+  } catch (err) {
+    const text =
+      err && typeof err === "object" && "message" in err
+        ? String((err as { message: unknown }).message)
+        : String(err);
+    if (!/message is not modified/i.test(text)) {
+      console.error(err);
+    }
+  }
 }
 
 async function saveBudget(userId: string, monthlyBudget: number): Promise<string> {
@@ -138,6 +212,15 @@ export async function completeOnboardingAfterBudget(
   await bot.sendMessage(msg.chat.id, COMPLETE_TEXT);
 }
 
+export async function completeOnboardingSkippedBudget(
+  chatId: number,
+  userId: string,
+  bot: TelegramBot,
+): Promise<void> {
+  await markOnboardingComplete(userId);
+  await bot.sendMessage(chatId, SKIPPED_COMPLETE_TEXT);
+}
+
 /** Returns true if the message was handled by onboarding (caller should not parse as expense). */
 export async function handleOnboardingMessage(
   msg: Message,
@@ -165,21 +248,25 @@ export async function handleOnboardingMessage(
 
   if (record.step === OnboardingStep.EXPENSE_INTRO) {
     await upsertUserOnboarding(userId, OnboardingStep.SET_BUDGET);
-    await bot.sendMessage(msg.chat.id, BUDGET_PROMPT_TEXT);
+    await sendBudgetPrompt(msg.chat.id, bot);
     return true;
   }
 
   if (record.step === OnboardingStep.SET_BUDGET) {
+    if (isSkipBudgetText(msg.text)) {
+      await completeOnboardingSkippedBudget(msg.chat.id, userId, bot);
+      return true;
+    }
+
     const amount = parseBudgetAmount(msg.text);
     if (amount !== null) {
       await completeOnboardingAfterBudget(msg, bot, amount);
       return true;
     }
 
-    await bot.sendMessage(
-      msg.chat.id,
-      `Almost there — set a budget first.\n\nReply with a number like 15000, or /setBudget 15000.\n\nAfter that you can log expenses like "Spent 150 on coffee".`,
-    );
+    await bot.sendMessage(msg.chat.id, BUDGET_RETRY_TEXT, {
+      reply_markup: SKIP_BUDGET_KEYBOARD,
+    });
     return true;
   }
 
@@ -204,5 +291,37 @@ export async function maybeCompleteOnboardingFromSetBudget(
   }
 
   await completeOnboardingAfterBudget(msg, bot, amount);
+  return true;
+}
+
+/** Returns true if this callback was an onboarding Skip tap (caller should not treat it as an expense draft). */
+export async function handleOnboardingCallbackQuery(
+  query: CallbackQuery,
+  bot: TelegramBot,
+): Promise<boolean> {
+  if (query.data !== SKIP_BUDGET_CALLBACK_DATA) {
+    return false;
+  }
+
+  const userId = query.from?.id?.toString();
+  const chatId = query.message?.chat.id;
+  const messageId = query.message?.message_id;
+
+  if (!userId || chatId == null) {
+    await answerCallback(bot, query);
+    return true;
+  }
+
+  if (messageId != null) {
+    await removeSkipKeyboard(bot, chatId, messageId);
+  }
+
+  if (await isOnboardingComplete(userId)) {
+    await answerCallback(bot, query);
+    return true;
+  }
+
+  await completeOnboardingSkippedBudget(chatId, userId, bot);
+  await answerCallback(bot, query, "Skipped");
   return true;
 }
