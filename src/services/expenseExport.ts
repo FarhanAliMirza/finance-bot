@@ -12,6 +12,14 @@ import {
   type CalendarDate,
   type InstantRange,
 } from "../utils/dates";
+import {
+  EXPORT_BORDER_HEX,
+  EXPORT_TEXT_HEX,
+  HEADER_FILL_HEX,
+  categoryPastelHex,
+  hexToArgb,
+  paymentMethodPastelHex,
+} from "../utils/exportColors";
 import { UNSPECIFIED_METHOD_LABEL } from "../utils/paymentMethods";
 
 export type ExportFormat = "csv" | "xlsx";
@@ -127,19 +135,67 @@ export function toCsv(rows: ExportRow[]): string {
   return lines.join("\n");
 }
 
+const THIN_BORDER: Partial<ExcelJS.Borders> = {
+  top: { style: "thin", color: { argb: hexToArgb(EXPORT_BORDER_HEX) } },
+  left: { style: "thin", color: { argb: hexToArgb(EXPORT_BORDER_HEX) } },
+  bottom: { style: "thin", color: { argb: hexToArgb(EXPORT_BORDER_HEX) } },
+  right: { style: "thin", color: { argb: hexToArgb(EXPORT_BORDER_HEX) } },
+};
+
+function solidFill(hex: string): ExcelJS.FillPattern {
+  return {
+    type: "pattern",
+    pattern: "solid",
+    fgColor: { argb: hexToArgb(hex) },
+  };
+}
+
+function applyPastelCell(cell: ExcelJS.Cell, hex: string): void {
+  cell.fill = solidFill(hex);
+  cell.font = { color: { argb: hexToArgb(EXPORT_TEXT_HEX) } };
+}
+
+function autoWidthColumns(sheet: ExcelJS.Worksheet): void {
+  const minWidths = [12, 10, 12, 16, 14];
+  sheet.columns.forEach((column, index) => {
+    let max = minWidths[index] ?? 10;
+    column.eachCell?.({ includeEmpty: false }, (cell) => {
+      const len = String(cell.value ?? "").length;
+      if (len > max) max = len;
+    });
+    column.width = Math.min(max + 2, 48);
+  });
+}
+
 export async function toXlsx(rows: ExportRow[]): Promise<Buffer> {
   const workbook = new ExcelJS.Workbook();
   const sheet = workbook.addWorksheet("Expenses");
-  sheet.addRow([...EXPORT_HEADERS]);
+  sheet.views = [{ state: "frozen", ySplit: 1 }];
+
+  const headerRow = sheet.addRow([...EXPORT_HEADERS]);
+  headerRow.eachCell((cell) => {
+    cell.fill = solidFill(HEADER_FILL_HEX);
+    cell.border = THIN_BORDER;
+    cell.font = { bold: true, color: { argb: hexToArgb(EXPORT_TEXT_HEX) } };
+  });
+
   for (const row of rows) {
-    sheet.addRow([
+    const excelRow = sheet.addRow([
       row.date,
       row.amount,
       row.category,
       row.paymentMethod,
       row.description,
     ]);
+    excelRow.eachCell((cell) => {
+      cell.border = THIN_BORDER;
+    });
+    applyPastelCell(excelRow.getCell(3), categoryPastelHex(row.category));
+    applyPastelCell(excelRow.getCell(4), paymentMethodPastelHex(row.paymentMethod));
   }
+
+  autoWidthColumns(sheet);
+
   const buffer = await workbook.xlsx.writeBuffer();
   return Buffer.from(buffer);
 }

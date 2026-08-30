@@ -1,4 +1,13 @@
+import ExcelJS from "exceljs";
 import { describe, expect, it } from "vitest";
+import { EXPENSE_CATEGORIES } from "../types/expense";
+import {
+  CATEGORY_PASTEL_HEX,
+  EXPORT_TEXT_HEX,
+  HEADER_FILL_HEX,
+  PAYMENT_METHOD_PASTEL_HEX,
+  hexToArgb,
+} from "../utils/exportColors";
 import {
   buildExportFile,
   exportCaption,
@@ -8,6 +17,7 @@ import {
   toExportRows,
   toXlsx,
   type ExportableExpense,
+  type ExportRow,
 } from "./expenseExport";
 
 const KOLKATA = "Asia/Kolkata";
@@ -104,6 +114,64 @@ describe("buildExportFile empty vs non-empty", () => {
     const rows = toExportRows(expenses, KOLKATA);
     const xlsx = await toXlsx(rows);
     expect(xlsx.subarray(0, 2).toString("utf8")).toBe("PK");
+  });
+});
+
+function fillArgb(cell: ExcelJS.Cell): string | undefined {
+  const fill = cell.fill;
+  if (!fill || fill.type !== "pattern" || fill.pattern !== "solid") {
+    return undefined;
+  }
+  return fill.fgColor?.argb?.toUpperCase();
+}
+
+function fontArgb(cell: ExcelJS.Cell): string | undefined {
+  return cell.font?.color?.argb?.toUpperCase();
+}
+
+describe("toXlsx styling", () => {
+  it("applies pastel fills only to category and payment method cells", async () => {
+    const allRows: ExportRow[] = EXPENSE_CATEGORIES.map((category, i) => ({
+      date: "2026-08-27 01:30",
+      amount: i + 1,
+      category,
+      paymentMethod: (["Cash", "Card", "UPI", "Unspecified"] as const)[i % 4],
+      description: category,
+    }));
+
+    const buffer = await toXlsx(allRows);
+    const workbook = new ExcelJS.Workbook();
+    await workbook.xlsx.load(buffer);
+    const sheet = workbook.getWorksheet("Expenses");
+    expect(sheet).toBeDefined();
+    if (!sheet) return;
+
+    expect(sheet.views?.[0]).toMatchObject({ state: "frozen", ySplit: 1 });
+
+    for (let col = 1; col <= 5; col++) {
+      expect(fillArgb(sheet.getCell(1, col))).toBe(hexToArgb(HEADER_FILL_HEX));
+      expect(fontArgb(sheet.getCell(1, col))).toBe(hexToArgb(EXPORT_TEXT_HEX));
+      expect(sheet.getCell(1, col).font?.bold).toBe(true);
+    }
+
+    for (let i = 0; i < EXPENSE_CATEGORIES.length; i++) {
+      const excelRow = i + 2;
+      const category = EXPENSE_CATEGORIES[i];
+      const method = (["Cash", "Card", "UPI", "Unspecified"] as const)[i % 4];
+
+      expect(fillArgb(sheet.getCell(excelRow, 1))).toBeUndefined();
+      expect(fillArgb(sheet.getCell(excelRow, 2))).toBeUndefined();
+      expect(fillArgb(sheet.getCell(excelRow, 5))).toBeUndefined();
+
+      expect(fillArgb(sheet.getCell(excelRow, 3))).toBe(
+        hexToArgb(CATEGORY_PASTEL_HEX[category]),
+      );
+      expect(fillArgb(sheet.getCell(excelRow, 4))).toBe(
+        hexToArgb(PAYMENT_METHOD_PASTEL_HEX[method]),
+      );
+      expect(fontArgb(sheet.getCell(excelRow, 3))).toBe(hexToArgb(EXPORT_TEXT_HEX));
+      expect(fontArgb(sheet.getCell(excelRow, 4))).toBe(hexToArgb(EXPORT_TEXT_HEX));
+    }
   });
 });
 
