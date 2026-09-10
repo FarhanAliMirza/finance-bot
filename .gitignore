@@ -25,3 +25,6 @@ lerna-debug.log*
 .DS_Store # macOS
 .vscode/ # VS Code configuration
 /generated/prisma
+
+# Foglamp scan (edit token is a secret)
+.foglamp/
