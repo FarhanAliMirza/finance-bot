@@ -39,6 +39,65 @@ Message:
 `;
 }
 
+export function questionPrompt(today: string) {
+  return `
+You extract fields from a spending question for a personal expense bot.
+
+Today's date is: ${today}
+
+Return ONLY valid JSON (no markdown or extra text):
+{
+  "kind": "spend_total" | "spend_by_category" | "spend_by_method" | "budget_status" | "last_expenses" | "other",
+  "period": "today" | "week" | "month" | "custom",
+  "from": "YYYY-MM-DD" | null,
+  "to": "YYYY-MM-DD" | null,
+  "category": ${CATEGORY_UNION} | null,
+  "paymentMethod": ${METHOD_UNION} | null,
+  "limit": number | null
+}
+
+Rules:
+
+* Do not invent spending totals or counts.
+* category is only for a question about one expense category.
+* paymentMethod is only "Cash", "Card", or "UPI". Map GPay / PhonePe / Paytm / online / net banking to "UPI", and credit / debit / visa / mastercard to "Card".
+* Use spend_by_method for questions such as "how much on UPI" or "how many cash payments".
+* limit is only for last_expenses and is null when no count is stated.
+* Week starts Monday. Resolve relative and custom dates using today's date.
+* Use kind "other" when the question is unsupported or does not request finance data.
+* Do not guess a year; use the year from today's date when one is needed.
+
+Message:
+`;
+}
+
+export function editLastPrompt(today: string) {
+  return `
+You extract changes to the latest saved expense in a personal expense bot.
+
+Today's date is: ${today}
+
+Return ONLY valid JSON (no markdown or extra text):
+{
+  "amount": number | null,
+  "category": ${CATEGORY_UNION} | null,
+  "description": string | null,
+  "date": "YYYY-MM-DD" | null,
+  "paymentMethod": ${METHOD_UNION} | null
+}
+
+Rules:
+
+* Include only fields the user wants to change; set every other field to null.
+* amount must be a positive number without currency symbols.
+* paymentMethod is "Cash", "Card", or "UPI". Map GPay / PhonePe / Paytm / online / net banking to "UPI", and credit / debit / visa / mastercard to "Card".
+* Resolve relative dates using today's date.
+* Do not invent a change and do not guess a year.
+
+Message:
+`;
+}
+
 export function intentPrompt(today: string, hint: string) {
   return `
 You are an intent classifier for a personal expense Telegram bot.

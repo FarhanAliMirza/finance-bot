@@ -1,8 +1,9 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { EXPENSE_CATEGORIES } from "../types/expense";
 import { expenseSchema } from "../utils/validation";
 import {
   CATEGORIES,
+  classifyIntent,
   coerceCategory,
   extractJsonObject,
   heuristicIntentHint,
@@ -380,6 +381,91 @@ describe("parseClassifiedIntent", () => {
       "coffee",
     );
     expect(result.intent).toBe("question");
+  });
+});
+
+describe("classifyIntent Jev routing", () => {
+  const decision = (
+    intent: "log" | "question" | "edit_last" | "other",
+    confidence: number,
+  ) => ({
+    intent,
+    confidence,
+    probabilities: {
+      log: intent === "log" ? 1 : 0,
+      question: intent === "question" ? 1 : 0,
+      edit_last: intent === "edit_last" ? 1 : 0,
+      other: intent === "other" ? 1 : 0,
+    },
+    model: "jev-1.13.0",
+  });
+
+  it("uses Jev's accepted route and extracts only that branch", async () => {
+    const route = vi.fn().mockResolvedValue(decision("log", 0.9));
+    const expected = parse(
+      '{"intent":"log","amount":150,"category":"Food","description":"coffee"}',
+      "log",
+      "Spent 150 on coffee",
+    );
+    const extract = vi.fn().mockResolvedValue(expected);
+    const fallback = vi.fn();
+
+    const result = await classifyIntent(
+      "Spent 150 on coffee",
+      "Asia/Kolkata",
+      { route, extract, fallback },
+    );
+
+    expect(result).toEqual(expected);
+    expect(route).toHaveBeenCalledWith("Spent 150 on coffee");
+    expect(extract).toHaveBeenCalledWith(
+      "log",
+      "Spent 150 on coffee",
+      "Asia/Kolkata",
+    );
+    expect(fallback).not.toHaveBeenCalled();
+  });
+
+  it("returns safe help without Gemini fallback for low confidence", async () => {
+    const extract = vi.fn();
+    const fallback = vi.fn();
+
+    const result = await classifyIntent("maybe change coffee", "Asia/Kolkata", {
+      route: vi.fn().mockResolvedValue(decision("edit_last", 0.69)),
+      extract,
+      fallback,
+    });
+
+    expect(result).toEqual(unansweredQuestion());
+    expect(extract).not.toHaveBeenCalled();
+    expect(fallback).not.toHaveBeenCalled();
+  });
+
+  it("uses the Gemini classifier only when TypeSafe routing fails", async () => {
+    const expected = unansweredQuestion();
+    const fallback = vi.fn().mockResolvedValue(expected);
+
+    const result = await classifyIntent("hello", "Asia/Kolkata", {
+      route: vi.fn().mockRejectedValue(new Error("TypeSafe unavailable")),
+      extract: vi.fn(),
+      fallback,
+    });
+
+    expect(result).toEqual(expected);
+    expect(fallback).toHaveBeenCalledWith("hello", "Asia/Kolkata");
+  });
+
+  it("does not reclassify with Gemini when branch extraction fails", async () => {
+    const fallback = vi.fn();
+
+    const result = await classifyIntent("Spent 150", "Asia/Kolkata", {
+      route: vi.fn().mockResolvedValue(decision("log", 0.9)),
+      extract: vi.fn().mockRejectedValue(new Error("bad extraction")),
+      fallback,
+    });
+
+    expect(result).toEqual(unansweredQuestion());
+    expect(fallback).not.toHaveBeenCalled();
   });
 });
 

@@ -1,11 +1,20 @@
 import { model } from "../ai/gemini";
-import { intentPrompt } from "../ai/prompts";
+import {
+  editLastPrompt,
+  intentPrompt,
+  questionPrompt,
+} from "../ai/prompts";
+import {
+  acceptedJevIntent,
+  classifyIntentWithJev,
+} from "../ai/typesafe";
 import { EXPENSE_CATEGORIES, type ParsedExpense } from "../types/expense";
 import type {
   ClassifiedIntent,
   EditLastFields,
   ExpenseCategory,
   HeuristicIntent,
+  IntentKind,
   QuestionKind,
   QuestionPeriod,
   QuestionSlots,
@@ -315,6 +324,63 @@ export function parseClassifiedIntent(
 }
 
 export async function classifyIntent(
+  text: string,
+  timeZone: string,
+  deps: {
+    route?: typeof classifyIntentWithJev;
+    extract?: typeof extractRoutedIntent;
+    fallback?: typeof classifyIntentWithGemini;
+  } = {},
+): Promise<ClassifiedIntent> {
+  const route = deps.route ?? classifyIntentWithJev;
+  const extract = deps.extract ?? extractRoutedIntent;
+  const fallback = deps.fallback ?? classifyIntentWithGemini;
+
+  let routedIntent: IntentKind | null;
+  try {
+    routedIntent = acceptedJevIntent(await route(text));
+  } catch (err) {
+    console.error("TypeSafe intent routing failed; using Gemini fallback.", err);
+    return fallback(text, timeZone);
+  }
+
+  if (!routedIntent) return unansweredQuestion();
+
+  try {
+    return await extract(routedIntent, text, timeZone);
+  } catch (err) {
+    console.error(`Failed to extract fields for ${routedIntent} intent.`, err);
+    if (routedIntent === "edit_last") {
+      return { intent: "edit_last", fields: {} };
+    }
+    return unansweredQuestion();
+  }
+}
+
+export async function extractRoutedIntent(
+  intent: IntentKind,
+  text: string,
+  timeZone: string,
+): Promise<ClassifiedIntent> {
+  const today = todayInTimeZone(timeZone);
+
+  if (intent === "log") {
+    return { intent: "log", expense: await parseExpense(text, timeZone) };
+  }
+
+  const prompt =
+    intent === "question" ? questionPrompt(today) : editLastPrompt(today);
+  const result = await model.generateContent(prompt + text);
+  const data = asRecord(extractJsonObject(result.response.text()));
+  if (!data) throw new Error("Invalid JSON object from Gemini");
+
+  if (intent === "question") {
+    return { intent: "question", question: buildQuestion(data, text) };
+  }
+  return { intent: "edit_last", fields: buildEditFields(data, text) };
+}
+
+export async function classifyIntentWithGemini(
   text: string,
   timeZone: string,
 ): Promise<ClassifiedIntent> {

@@ -1,6 +1,6 @@
 # 💰 Finance Bot
 
-> An intelligent Telegram bot that uses AI to track your expenses and manage your budget effortlessly.
+> An intelligent Telegram bot that uses Jev and Gemini to track your expenses and manage your budget effortlessly.
 
 ---
 
@@ -32,10 +32,11 @@
 
 ### Prerequisites
 
-- Node.js 18+
+- Node.js 20+
 - PostgreSQL database
 - Telegram Bot Token (from [@BotFather](https://t.me/botfather))
-- Google Gemini API Key
+- TypeSafe API key
+- Google Gemini API key
 
 ### Installation
 
@@ -57,6 +58,7 @@
 
    ```bash
    TELEGRAM_BOT_TOKEN=your_telegram_token
+   TYPESAFE_API_KEY=your_typesafe_api_key
    GEMINI_API_KEY=your_gemini_api_key
    DATABASE_URL=your_postgresql_connection_string
    DIRECT_URL=your_postgresql_direct_url
@@ -431,6 +433,7 @@ finance-bot/
 │   │       └── delete.ts        # Delete most recent expense
 │   ├── ai/
 │   │   ├── gemini.ts            # Google Gemini API integration
+│   │   ├── typesafe.ts          # Jev intent choice + confidence policy
 │   │   └── prompts.ts           # AI prompt templates
 │   ├── services/
 │   │   ├── expenseParser.ts     # AI-powered expense extraction
@@ -535,10 +538,11 @@ Tracks first-run walkthrough progress:
 ## 🤖 How AI Routing Works
 
 1. **Slash commands** (`/today`, etc.) skip classification.
-2. **Free text** (after onboarding): Gemini classifies `log` | `question` | `edit_last` and extracts slots. Keyword hints bias toward questions unless the message is clearly a new expense or an edit.
-3. **log** → Confirm/Undo draft when the method is known (auto-save after 3 minutes). If Cash / Card / UPI is missing, method buttons save on tap; no auto-save until a method is set.
-4. **question** → Prisma totals for today / this week / this month (your timezone, week starts Monday), including by category or payment method. Gemini never invents amounts.
-5. **edit_last** → updates the latest saved `Expense` row (amount, category, description, date, and/or payment method).
+2. **Free text** (after onboarding): Jev classifies `log` | `question` | `edit_last` | `other` with confidence. Unclear or low-confidence messages get safe help instead of triggering an action. If TypeSafe is unavailable, the previous Gemini classifier is used as a service fallback.
+3. **Branch extraction**: after Jev chooses a supported route, Gemini extracts only that route's fields. It does not decide the route.
+4. **log** → Confirm/Undo draft when the method is known (auto-save after 3 minutes). If Cash / Card / UPI is missing, method buttons save on tap; no auto-save until a method is set.
+5. **question** → Prisma totals for today / this week / this month (your timezone, week starts Monday), including by category or payment method. Gemini never invents amounts.
+6. **edit_last** → updates the latest saved `Expense` row (amount, category, description, date, and/or payment method).
 
 **Smart Features:**
 
@@ -556,7 +560,8 @@ Tracks first-run walkthrough progress:
 | Component         | Technology                    |
 | ----------------- | ----------------------------- |
 | **Bot Framework** | node-telegram-bot-api         |
-| **AI Engine**     | Google Generative AI (Gemini) |
+| **AI Routing**    | TypeSafe System One (Jev)     |
+| **AI Extraction** | Google Generative AI (Gemini) |
 | **Database**      | PostgreSQL                    |
 | **ORM**           | Prisma                        |
 | **Language**      | TypeScript                    |
@@ -571,6 +576,7 @@ Tracks first-run walkthrough progress:
 ### Production
 
 - `@google/generative-ai` - Gemini AI integration
+- `@typesafe-ai/sdk` - Jev intent routing with typed choices and confidence
 - `@prisma/client` - Database ORM
 - `@prisma/adapter-pg` - PostgreSQL adapter
 - `node-telegram-bot-api` - Telegram bot framework
