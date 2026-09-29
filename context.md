@@ -129,3 +129,177 @@ Expected usage is day-of-month / days-in-month. A band of 10 percentage points a
 ## AI boundary
 
 Gemini is used to parse a new expense and to classify free text (`log` | `question` | `edit_last`) and fill slots. Reports, exports, budget math, and saved rows are application code and the database.
+
+## Proposed features — not implemented
+
+The features below are implementation plans only. They do not describe behavior
+that currently exists. They should preserve the existing expense logging,
+question, export, edit-last, `/last`, and `/delete` behavior unless a plan below
+explicitly extends it.
+
+### Search expenses by description
+
+#### Human-understandable language
+
+Users should be able to ask questions such as “How much did I spend on coffee
+this month?”, “Show my Uber expenses this week”, or “What did I spend on
+medicines between 1 Sep and 15 Sep?”
+
+The bot searches the saved expense descriptions without requiring a new
+category. Matching is case-insensitive. The reply gives the matching total,
+number of expenses, search term, and period. This makes descriptions useful for
+specific merchants and purchases that do not map cleanly to one of the fixed
+categories.
+
+For the first version, description-search replies should not show download
+buttons. Existing download buttons export every expense in a period, so showing
+them on a filtered result would produce a misleading file. Filtered exports can
+be added separately later.
+
+#### Agents to understand
+
+- Extend `QuestionKind` in `src/types/intent.ts` with
+  `spend_by_description`. Add `descriptionKeyword: string | null` to
+  `QuestionSlots` and initialize it in every manually constructed question.
+- Extend `intentPrompt()` in `src/ai/prompts.ts` to return
+  `descriptionKeyword`. The model should use a short literal term supplied by
+  the user and must not invent one. Category requests such as “Food this month”
+  remain `spend_by_category`; specific items or merchants such as “coffee”,
+  “Uber”, and “Netflix” use `spend_by_description`.
+- In `src/services/intentClassifier.ts`, read the new field from model JSON,
+  trim it, reject an empty value, and cap its length at 50 characters. Treat it
+  as plain text rather than a regular expression. If the model returns
+  `spend_by_description` without a valid keyword, degrade to `spend_total` or
+  `other` rather than running an unfiltered description query.
+- Add a query helper to `src/db/expenses.ts` that scopes by `userId`, uses the
+  existing half-open timestamp range, and applies Prisma
+  `description: { contains: keyword, mode: "insensitive" }`. Filtering in
+  PostgreSQL avoids loading all expenses for the period into Node.
+- Add a `spend_by_description` branch in
+  `src/services/questionService.ts`. Reuse `rangeForQuestion()` so `today`,
+  `week`, `month`, and custom ranges retain their existing timezone semantics.
+  Sum only matching database rows and pass the count and total to a dedicated
+  formatter in `src/utils/questionMessages.ts`.
+- Do not call `withExport()` for the initial description-search result.
+  Supporting filtered downloads later requires extending `ExportWindow` or the
+  export range store with filter metadata and applying the same filter in
+  `sendExpenseExport()`.
+- No schema migration is required for the initial feature. A normal substring
+  search is sufficient for the expected personal dataset. An
+  `@@index([userId, createdAt])` migration is an optional general query
+  optimization; PostgreSQL trigram search is unnecessary for the first version.
+- Add classifier tests for extraction, missing keywords, and malformed model
+  output. Add question/database tests for case-insensitive matching, no
+  matches, custom ranges, punctuation, and isolation between Telegram users.
+
+### Month-to-month comparison
+
+#### Human-understandable language
+
+Add `/compare` to show whether the user is spending more or less than in the
+previous month. The comparison should use equal elapsed portions of the two
+months. For example, on 28 September it compares 1–28 September with 1–28
+August, rather than comparing a partial September with all of August.
+
+The reply includes both totals, the rupee difference, and the percentage
+increase or decrease when a percentage can be calculated. If the previous
+period has no spending, the bot reports the new spending without claiming an
+infinite percentage increase.
+
+#### Agents to understand
+
+- Implement `/compare` as a command first. Do not change free-text
+  classification in the initial version. Natural-language comparison can later
+  be introduced as a separate `month_comparison` question kind.
+- Add a timezone-aware comparison-range helper to `src/utils/dates.ts`. It
+  should return current and previous `InstantRange` values plus display labels.
+  Determine the user's local year, month, and day; construct the current range
+  from local day 1 through the end of today; move back one calendar month; and
+  cap the previous end day to the number of days in that month. Convert local
+  boundaries with `startOfDayUtc()`. Do not subtract a fixed millisecond
+  duration to find the previous month.
+- Expected edge cases include January rolling back to December, March 29–31
+  comparing through the last valid February day, leap years, and timezones
+  whose local midnight is on a different UTC date.
+- Create `src/services/monthComparisonService.ts`. Fetch both periods with
+  `getExpensesBetween()` using `Promise.all`, then calculate `currentTotal`,
+  `previousTotal`, signed and absolute difference, direction, and percentage.
+  A positive difference means increased spending.
+- Percentage rules: if both totals are zero, report no spending in either
+  period; if only the previous total is zero, omit the percentage; otherwise
+  use `abs((currentTotal - previousTotal) / previousTotal) * 100`. Round only
+  for display so intermediate calculations retain precision.
+- Add a formatter that produces a short reply for increased, decreased,
+  unchanged, current-only, and both-empty states. Keep the first version
+  total-only; category-level comparison is a separate enhancement.
+- Create `src/bot/commands/compare.ts`, get the Telegram user ID and timezone,
+  call the service, and send the formatted result. Register `/compare` in the
+  command switch in `src/bot/bot.ts` and document it in `/help`. It does not
+  need to be added to the four-command Telegram menu initially.
+- No database migration is required.
+- Test with a fixed `now`: normal comparisons, increased/decreased/unchanged
+  totals, zero totals, January rollover, short and leap-year February, and
+  timezone boundaries.
+
+### Delete a selected recent expense
+
+#### Human-understandable language
+
+Keep `/delete` as the quick way to delete the latest saved expense. Extend
+`/last` so each of the five recent expenses has its own delete button. This lets
+users remove an older incorrect entry without deleting newer valid expenses
+first.
+
+After a selected expense is deleted, show an **Undo delete** button for five
+minutes. A stale, already-used, or unauthorized button should not change any
+data and should return a short notice.
+
+#### Agents to understand
+
+- Refactor `src/services/lastExpenseService.ts` so the `/last` flow has both
+  formatted text and the queried expense IDs. It may return a structured result
+  or separate querying from formatting. Preserve the existing newest-first
+  limit of five and combined total.
+- In `src/bot/commands/last.ts`, send an inline keyboard with one delete button
+  per expense. Use concise labels such as `🗑 ₹150 · coffee`; truncate only the
+  visible description. Encode callback data as `delexp:<expenseId>`. Telegram
+  limits callback data to 64 bytes, and this prefix plus the current UUID fits.
+- Add a dedicated handler such as
+  `handleDeleteExpenseCallbackQuery(query, bot): Promise<boolean>`. It must
+  return `false` for unrelated callbacks and be called in
+  `src/bot/bot.ts` before `handleExpenseCallbackQuery()`, because the latter
+  currently acknowledges callback data it does not recognize.
+- Never authorize from callback data alone. Read and delete with both
+  `id: expenseId` and `userId: query.from.id.toString()`. The existing
+  `deleteExpenseById(userId, expenseId)` already uses `deleteMany` with both
+  fields and is safe to reuse. This ownership check is required in group chats,
+  where another user may be able to tap the button.
+- Treat a delete count of zero as stale, unauthorized, or already deleted.
+  Answer the callback with a neutral message and do not expose whether an
+  expense belongs to another user. Double taps must delete at most once.
+- Before deletion, fetch the complete owned row. After successful deletion,
+  store an undo snapshot containing its original `id`, `userId`, `amount`,
+  `category`, `description`, `paymentMethod`, and `createdAt`, plus `chatId`,
+  a short random token, and a five-minute expiry. Use a small in-memory store
+  patterned after the existing draft/range stores, with atomic consume and
+  timer cleanup behavior.
+- Encode undo callbacks as `undodel:<token>`. On undo, verify the stored owner
+  and chat, atomically consume the token, and recreate the row directly with
+  Prisma using its original ID and timestamp. Do not call `createExpense()`,
+  because it derives a new timestamp from a parsed date. An undo token can
+  succeed only once.
+- In-memory undo is intentionally best-effort: deployment or process restart
+  invalidates outstanding undo buttons. Respond with `This undo expired.` in
+  that case. Persistent undo or soft deletion would require a later schema
+  change.
+- After deletion, answer the callback promptly and edit or replace the old
+  keyboard so its delete buttons are no longer presented as current. The
+  message may be refreshed with the remaining latest expenses and an undo
+  button. Ignore Telegram's harmless “message is not modified” error using the
+  same pattern as the draft handler.
+- Preserve the existing `/delete` command and post-save draft Undo behavior;
+  this feature adds a separate callback prefix and must not change either flow.
+- Test selected deletion, user isolation, group-chat taps, malformed and stale
+  callbacks, double taps, exact-field restoration, one-time undo, expiry,
+  callback length, and routing alongside onboarding, export, and draft
+  callbacks.
