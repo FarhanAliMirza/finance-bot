@@ -61,10 +61,10 @@ describe("toExportRows / toCsv", () => {
     const csv = toCsv(rows);
     expect(csv).toBe(
       [
-        "Date,Amount,Category,Payment method,Description",
-        '2026-08-27 01:30,150,Food,UPI,Coffee',
-        '2026-08-27 13:30,500,Travel,Card,"Taxi, ""airport"""',
-        "2026-08-27 15:30,80.5,Food,Unspecified,Snacks",
+        "Date,Amount,Category,Description,Payment method",
+        "2026-08-27 01:30,150,Food,Coffee,UPI",
+        '2026-08-27 13:30,500,Travel,"Taxi, ""airport""",Card',
+        "2026-08-27 15:30,80.5,Food,Snacks,Unspecified",
       ].join("\n"),
     );
   });
@@ -161,16 +161,16 @@ describe("toXlsx styling", () => {
 
       expect(fillArgb(sheet.getCell(excelRow, 1))).toBeUndefined();
       expect(fillArgb(sheet.getCell(excelRow, 2))).toBeUndefined();
-      expect(fillArgb(sheet.getCell(excelRow, 5))).toBeUndefined();
+      expect(fillArgb(sheet.getCell(excelRow, 4))).toBeUndefined();
 
       expect(fillArgb(sheet.getCell(excelRow, 3))).toBe(
         hexToArgb(CATEGORY_PASTEL_HEX[category]),
       );
-      expect(fillArgb(sheet.getCell(excelRow, 4))).toBe(
+      expect(fillArgb(sheet.getCell(excelRow, 5))).toBe(
         hexToArgb(PAYMENT_METHOD_PASTEL_HEX[method]),
       );
       expect(fontArgb(sheet.getCell(excelRow, 3))).toBe(hexToArgb(EXPORT_TEXT_HEX));
-      expect(fontArgb(sheet.getCell(excelRow, 4))).toBe(hexToArgb(EXPORT_TEXT_HEX));
+      expect(fontArgb(sheet.getCell(excelRow, 5))).toBe(hexToArgb(EXPORT_TEXT_HEX));
     }
   });
 });
