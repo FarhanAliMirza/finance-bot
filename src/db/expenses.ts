@@ -34,6 +34,28 @@ export async function getExpensesBetween(
   });
 }
 
+export async function getExpensesByDescription(
+  userId: string,
+  keyword: string,
+  startInclusive: Date,
+  endExclusive: Date,
+) {
+  return prisma.expense.findMany({
+    where: {
+      userId,
+      createdAt: {
+        gte: startInclusive,
+        lt: endExclusive,
+      },
+      description: {
+        contains: keyword,
+        mode: "insensitive",
+      },
+    },
+    orderBy: { createdAt: "desc" },
+  });
+}
+
 export async function getLatestExpenses(userId: string, take: number) {
   return prisma.expense.findMany({
     where: { userId },

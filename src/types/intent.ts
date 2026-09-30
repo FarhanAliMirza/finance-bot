@@ -11,6 +11,7 @@ export type QuestionKind =
   | "spend_total"
   | "spend_by_category"
   | "spend_by_method"
+  | "spend_by_description"
   | "budget_status"
   | "last_expenses"
   | "other";
@@ -24,6 +25,7 @@ export interface QuestionSlots {
   to: string | null;
   category: ExpenseCategory | null;
   paymentMethod: PaymentMethod | null;
+  descriptionKeyword: string | null;
   limit: number | null;
 }
 

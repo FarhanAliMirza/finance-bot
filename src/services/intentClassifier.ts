@@ -23,7 +23,7 @@ const EDIT_RE =
   /\b((change|update|edit|fix)\s+(that|it|this|the last|last (one|expense))|make\s+(it|that|the last one)|actually\s+(it|that)\s+was|last\s+(one|expense)\s+(should|was|is|to)|change\s+that\s+to)\b/i;
 
 const QUESTION_RE =
-  /\b(how much|how many|what did i|what have i|what was|what’s my|what's my|whats my|did i spend|spent on|spend on|spending on|show me|tell me|remaining budget|budget (left|status|remaining)|last \d+ expenses?|last expenses?|any expenses|how much i spent)\b/i;
+  /\b(how much|how many|what did i|what have i|what was|what’s my|what's my|whats my|did i spend|spent on|spend on|spending on|show (me|my)|tell me|remaining budget|budget (left|status|remaining)|last \d+ expenses?|last expenses?|any expenses|how much i spent)\b/i;
 
 const LOG_VERB_AMOUNT_RE =
   /\b(spent|paid|bought|got)\b[\s\S]{0,48}\d/i;
@@ -44,6 +44,7 @@ export function unansweredQuestion(): ClassifiedIntent {
       to: null,
       category: null,
       paymentMethod: null,
+      descriptionKeyword: null,
       limit: null,
     },
   };
@@ -162,6 +163,13 @@ function asQuestionKind(value: unknown): QuestionKind {
   ) {
     return "spend_by_method";
   }
+  if (
+    key === "spend_by_description" ||
+    key === "description" ||
+    key === "by_description"
+  ) {
+    return "spend_by_description";
+  }
   if (key === "budget_status" || key === "budget") return "budget_status";
   if (
     key === "last_expenses" ||
@@ -194,6 +202,13 @@ function asLimit(value: unknown): number | null {
   return Math.min(10, Math.round(n));
 }
 
+function asDescriptionKeyword(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+  return Array.from(trimmed).slice(0, 50).join("");
+}
+
 function buildQuestion(
   data: Record<string, unknown>,
   originalText: string,
@@ -204,9 +219,15 @@ function buildQuestion(
       readField(data, "paymentMethod", "method"),
       originalText,
     ) ?? null;
+  const descriptionKeyword = asDescriptionKeyword(
+    readField(data, "descriptionKeyword"),
+  );
   let kind = asQuestionKind(readField(data, "kind"));
   if (kind === "spend_by_category" && !category) kind = "spend_total";
   if (kind === "spend_by_method" && !paymentMethod) kind = "spend_total";
+  if (kind === "spend_by_description" && !descriptionKeyword) {
+    kind = "spend_total";
+  }
   if (kind === "spend_total" && paymentMethod && !category) {
     kind = "spend_by_method";
   }
@@ -217,6 +238,7 @@ function buildQuestion(
     to: asIsoDate(readField(data, "to")) ?? null,
     category,
     paymentMethod,
+    descriptionKeyword,
     limit: asLimit(readField(data, "limit")),
   };
 }

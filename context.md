@@ -78,11 +78,14 @@ Supported question kinds, answered from the database in short natural language:
 
 - Spend total for today, this week, this month, or a custom date range
 - Spend in one category for a period
+- Spend matching a description term for a period
 - Spend by payment method for a period
 - Budget status
 - Recent expenses (default last one when the user asks for the last expense)
 
 When the answer covers a period that has expenses, the reply includes **Download CSV** and **Download Excel** for that window. Empty results have no download buttons.
+
+Description searches support questions such as “How much did I spend on coffee this month?”, “Show my Uber expenses this week”, and “What did I spend on medicines between 1 Sep and 15 Sep?” Matching is a case-insensitive literal substring search over saved descriptions, scoped to the requesting user and period. The reply includes the search term, matching total, and count. Description-search replies do not include download buttons because existing exports contain every expense in the period rather than only the matches.
 
 Questions the classifier cannot map get a short help reply. Budget questions with no budget say none is set.
 
@@ -136,61 +139,6 @@ The features below are implementation plans only. They do not describe behavior
 that currently exists. They should preserve the existing expense logging,
 question, export, edit-last, `/last`, and `/delete` behavior unless a plan below
 explicitly extends it.
-
-### Search expenses by description
-
-#### Human-understandable language
-
-Users should be able to ask questions such as “How much did I spend on coffee
-this month?”, “Show my Uber expenses this week”, or “What did I spend on
-medicines between 1 Sep and 15 Sep?”
-
-The bot searches the saved expense descriptions without requiring a new
-category. Matching is case-insensitive. The reply gives the matching total,
-number of expenses, search term, and period. This makes descriptions useful for
-specific merchants and purchases that do not map cleanly to one of the fixed
-categories.
-
-For the first version, description-search replies should not show download
-buttons. Existing download buttons export every expense in a period, so showing
-them on a filtered result would produce a misleading file. Filtered exports can
-be added separately later.
-
-#### Agents to understand
-
-- Extend `QuestionKind` in `src/types/intent.ts` with
-  `spend_by_description`. Add `descriptionKeyword: string | null` to
-  `QuestionSlots` and initialize it in every manually constructed question.
-- Extend `intentPrompt()` in `src/ai/prompts.ts` to return
-  `descriptionKeyword`. The model should use a short literal term supplied by
-  the user and must not invent one. Category requests such as “Food this month”
-  remain `spend_by_category`; specific items or merchants such as “coffee”,
-  “Uber”, and “Netflix” use `spend_by_description`.
-- In `src/services/intentClassifier.ts`, read the new field from model JSON,
-  trim it, reject an empty value, and cap its length at 50 characters. Treat it
-  as plain text rather than a regular expression. If the model returns
-  `spend_by_description` without a valid keyword, degrade to `spend_total` or
-  `other` rather than running an unfiltered description query.
-- Add a query helper to `src/db/expenses.ts` that scopes by `userId`, uses the
-  existing half-open timestamp range, and applies Prisma
-  `description: { contains: keyword, mode: "insensitive" }`. Filtering in
-  PostgreSQL avoids loading all expenses for the period into Node.
-- Add a `spend_by_description` branch in
-  `src/services/questionService.ts`. Reuse `rangeForQuestion()` so `today`,
-  `week`, `month`, and custom ranges retain their existing timezone semantics.
-  Sum only matching database rows and pass the count and total to a dedicated
-  formatter in `src/utils/questionMessages.ts`.
-- Do not call `withExport()` for the initial description-search result.
-  Supporting filtered downloads later requires extending `ExportWindow` or the
-  export range store with filter metadata and applying the same filter in
-  `sendExpenseExport()`.
-- No schema migration is required for the initial feature. A normal substring
-  search is sufficient for the expected personal dataset. An
-  `@@index([userId, createdAt])` migration is an optional general query
-  optimization; PostgreSQL trigram search is unnecessary for the first version.
-- Add classifier tests for extraction, missing keywords, and malformed model
-  output. Add question/database tests for case-insensitive matching, no
-  matches, custom ranges, punctuation, and isolation between Telegram users.
 
 ### Month-to-month comparison
 

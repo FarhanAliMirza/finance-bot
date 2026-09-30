@@ -5,7 +5,7 @@ import { formatRupees } from "./money";
 import { formatCategoryWithMethod } from "./paymentMethods";
 
 export const UNANSWERED_QUESTION_TEXT =
-  "I can tell you spending for today, this week, this month, by category, by payment method, or your last expenses.";
+  "I can tell you spending for today, this week, this month, by category, description, payment method, or your last expenses.";
 
 export const NO_BUDGET_NL_TEXT =
   "You don't have a monthly budget set. Use /setBudget to add one.";
@@ -72,6 +72,19 @@ export function formatSpendByMethodReply(input: {
     return `No ${paymentMethod} expenses ${periodLabel} yet.`;
   }
   return `${paymentMethod} ${periodLabel} is ${formatRupees(total)} (${count} ${expenseWord(count)}).`;
+}
+
+export function formatSpendByDescriptionReply(input: {
+  descriptionKeyword: string;
+  periodLabel: string;
+  total: number;
+  count: number;
+}): string {
+  const { descriptionKeyword, periodLabel, total, count } = input;
+  if (count === 0) {
+    return `No expenses matching "${descriptionKeyword}" ${periodLabel} (₹0 across 0 expenses).`;
+  }
+  return `Expenses matching "${descriptionKeyword}" ${periodLabel} total ${formatRupees(total)} (${count} ${expenseWord(count)}).`;
 }
 
 export function formatBudgetStatusNlReply(
