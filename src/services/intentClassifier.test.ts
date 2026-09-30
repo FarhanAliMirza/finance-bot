@@ -52,6 +52,9 @@ describe("heuristicIntentHint", () => {
     expect(heuristicIntentHint("how many cash payments this week")).toBe(
       "question",
     );
+    expect(heuristicIntentHint("Show my Uber expenses this week")).toBe(
+      "question",
+    );
   });
 
   it("treats last-expense edits as edit_last", () => {
@@ -137,6 +140,7 @@ describe("parseClassifiedIntent", () => {
         to: null,
         category: null,
         paymentMethod: null,
+        descriptionKeyword: null,
         limit: null,
       },
     });
@@ -161,6 +165,7 @@ describe("parseClassifiedIntent", () => {
         to: null,
         category: "Food",
         paymentMethod: null,
+        descriptionKeyword: null,
         limit: null,
       },
     });
@@ -335,9 +340,72 @@ describe("parseClassifiedIntent", () => {
         to: null,
         category: null,
         paymentMethod: "UPI",
+        descriptionKeyword: null,
         limit: null,
       },
     });
+  });
+
+  it("extracts and trims a literal description search keyword", () => {
+    const result = parse(
+      JSON.stringify({
+        intent: "question",
+        kind: "spend_by_description",
+        period: "month",
+        descriptionKeyword: "  coffee  ",
+      }),
+      "question",
+      "How much did I spend on coffee this month?",
+    );
+
+    expect(result).toEqual({
+      intent: "question",
+      question: {
+        kind: "spend_by_description",
+        period: "month",
+        from: null,
+        to: null,
+        category: null,
+        paymentMethod: null,
+        descriptionKeyword: "coffee",
+        limit: null,
+      },
+    });
+  });
+
+  it("caps description search keywords at 50 characters", () => {
+    const result = parse(
+      JSON.stringify({
+        intent: "question",
+        kind: "spend_by_description",
+        descriptionKeyword: "x".repeat(60),
+      }),
+      "question",
+    );
+
+    expect(result.intent).toBe("question");
+    if (result.intent === "question") {
+      expect(result.question.descriptionKeyword).toBe("x".repeat(50));
+    }
+  });
+
+  it("degrades description searches with missing or malformed keywords", () => {
+    for (const descriptionKeyword of [undefined, "   ", 123]) {
+      const result = parse(
+        JSON.stringify({
+          intent: "question",
+          kind: "spend_by_description",
+          descriptionKeyword,
+        }),
+        "question",
+      );
+
+      expect(result.intent).toBe("question");
+      if (result.intent === "question") {
+        expect(result.question.kind).toBe("spend_total");
+        expect(result.question.descriptionKeyword).toBeNull();
+      }
+    }
   });
 
   it("upgrades a spend_total question when the text names a method", () => {

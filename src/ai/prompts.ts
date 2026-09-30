@@ -59,9 +59,10 @@ Return ONLY valid JSON (no markdown, no extra text):
   "amount": number | null,
   "category": ${CATEGORY_UNION} | null,
   "description": string | null,
+  "descriptionKeyword": string | null,
   "date": "YYYY-MM-DD" | null,
   "paymentMethod": ${METHOD_UNION} | null,
-  "kind": "spend_total" | "spend_by_category" | "spend_by_method" | "budget_status" | "last_expenses" | "other" | null,
+  "kind": "spend_total" | "spend_by_category" | "spend_by_method" | "spend_by_description" | "budget_status" | "last_expenses" | "other" | null,
   "period": "today" | "week" | "month" | "custom" | null,
   "from": "YYYY-MM-DD" | null,
   "to": "YYYY-MM-DD" | null,
@@ -74,7 +75,7 @@ Rules:
 * Do NOT invent spending totals or counts. amount is only for log or edit_last field changes.
 * log: extract amount (required), category, short description, date, paymentMethod. If no date mentioned, use today's date exactly (${today}). Relative dates use today. If no category, use "Other".
 * paymentMethod is "Cash", "Card", or "UPI". Map UPI / GPay / PhonePe / Paytm / online / net banking → "UPI"; card / credit / debit / visa / mastercard → "Card"; cash → "Cash". If how they paid is not mentioned, paymentMethod must be null. Do NOT guess.
-* question: set kind and period. category only when they ask about one category. paymentMethod only when they ask about Cash, Card, or UPI. Use spend_by_method for "how much on UPI" / "how many cash payments". limit only for last_expenses (e.g. "last 3" → 3). If period is custom, set from and to as YYYY-MM-DD.
+* question: set kind and period. category only when they ask about one category. paymentMethod only when they ask about Cash, Card, or UPI. Use spend_by_method for "how much on UPI" / "how many cash payments". Use spend_by_description for a specific item, merchant, or purchase such as coffee, Uber, Netflix, or medicines, and put the user's short literal search term in descriptionKeyword. Do not invent or paraphrase descriptionKeyword. Fixed category requests such as "Food this month" remain spend_by_category. limit only for last_expenses (e.g. "last 3" → 3). If period is custom, set from and to as YYYY-MM-DD.
 * Week starts Monday. "this week" → week. "this month" → month.
 * edit_last: only the fields they want to change; others null. Resolve date like log. "that was UPI" / "make it cash" → paymentMethod only.
 * A question that contains a number is still a question ("did I spend 500 today?").
@@ -86,6 +87,8 @@ Examples:
 "Spent 150 on coffee via UPI" → log, amount 150, Food, coffee, ${today}, paymentMethod UPI
 "how much I spent today" → question, spend_total, today
 "what was spend on food this week" → question, spend_by_category, week, Food
+"how much did I spend on coffee this month" → question, spend_by_description, month, descriptionKeyword coffee
+"show my Uber expenses this week" → question, spend_by_description, week, descriptionKeyword Uber
 "how much on UPI this month" → question, spend_by_method, month, paymentMethod UPI
 "how many cash payments this week" → question, spend_by_method, week, paymentMethod Cash
 "what's my budget" → question, budget_status

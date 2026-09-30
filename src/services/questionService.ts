@@ -1,4 +1,5 @@
 import {
+  getExpensesByDescription,
   getExpensesBetween,
   getLatestExpenses,
 } from "../db/expenses";
@@ -21,6 +22,7 @@ import {
   formatLastExpensesNlReply,
   formatPeriodLabel,
   formatSpendByCategoryReply,
+  formatSpendByDescriptionReply,
   formatSpendByMethodReply,
   formatSpendTotalReply,
 } from "../utils/questionMessages";
@@ -84,17 +86,39 @@ async function answerSpend(
   const range = rangeForQuestion(question, timeZone, now);
   if (!range) return { text: UNANSWERED_QUESTION_TEXT };
 
-  const expenses = await getExpensesBetween(
-    userId,
-    range.startInclusive,
-    range.endExclusive,
-  );
   const periodLabel = formatPeriodLabel(
     question.period,
     question.from,
     question.to,
     timeZone,
     now,
+  );
+
+  if (question.kind === "spend_by_description") {
+    if (!question.descriptionKeyword) {
+      return { text: UNANSWERED_QUESTION_TEXT };
+    }
+    const expenses = await getExpensesByDescription(
+      userId,
+      question.descriptionKeyword,
+      range.startInclusive,
+      range.endExclusive,
+    );
+    const total = expenses.reduce((sum, expense) => sum + expense.amount, 0);
+    return {
+      text: formatSpendByDescriptionReply({
+        descriptionKeyword: question.descriptionKeyword,
+        periodLabel,
+        total,
+        count: expenses.length,
+      }),
+    };
+  }
+
+  const expenses = await getExpensesBetween(
+    userId,
+    range.startInclusive,
+    range.endExclusive,
   );
 
   if (question.kind === "spend_by_category" && question.category) {
@@ -213,6 +237,7 @@ export async function answerQuestion(
     case "spend_total":
     case "spend_by_category":
     case "spend_by_method":
+    case "spend_by_description":
       return answerSpend(userId, question, timeZone, now);
     case "other":
     default:

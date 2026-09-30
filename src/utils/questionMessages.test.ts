@@ -7,6 +7,7 @@ import {
   formatLastExpensesNlReply,
   formatPeriodLabel,
   formatSpendByCategoryReply,
+  formatSpendByDescriptionReply,
   formatSpendByMethodReply,
   formatSpendTotalReply,
 } from "./questionMessages";
@@ -81,6 +82,32 @@ describe("formatSpendByMethodReply", () => {
         count: 0,
       }),
     ).toBe("No Cash expenses this week yet.");
+  });
+});
+
+describe("formatSpendByDescriptionReply", () => {
+  it("includes the literal term, period, matching total, and count", () => {
+    expect(
+      formatSpendByDescriptionReply({
+        descriptionKeyword: "Uber",
+        periodLabel: "this week",
+        total: 850,
+        count: 3,
+      }),
+    ).toBe('Expenses matching "Uber" this week total ₹850 (3 expenses).');
+  });
+
+  it("includes zero total and count when nothing matches", () => {
+    expect(
+      formatSpendByDescriptionReply({
+        descriptionKeyword: "Netflix",
+        periodLabel: "this month",
+        total: 0,
+        count: 0,
+      }),
+    ).toBe(
+      'No expenses matching "Netflix" this month (₹0 across 0 expenses).',
+    );
   });
 });
 

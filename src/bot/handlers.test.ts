@@ -81,6 +81,7 @@ describe("handleMessage intent routing", () => {
         to: null,
         category: null,
         paymentMethod: null,
+        descriptionKeyword: null,
         limit: null,
       },
     };
