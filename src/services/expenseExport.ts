@@ -42,16 +42,16 @@ export interface ExportRow {
   date: string;
   amount: number;
   category: string;
-  paymentMethod: string;
   description: string;
+  paymentMethod: string;
 }
 
 export const EXPORT_HEADERS = [
   "Date",
   "Amount",
   "Category",
-  "Payment method",
   "Description",
+  "Payment method",
 ] as const;
 
 export const CSV_CONTENT_TYPE = "text/csv; charset=utf-8";
@@ -100,8 +100,8 @@ export function toExportRows(
       date: formatZonedDateTime(expense.createdAt, timeZone),
       amount: expense.amount,
       category: expense.category,
-      paymentMethod: expense.paymentMethod || UNSPECIFIED_METHOD_LABEL,
       description: expense.description,
+      paymentMethod: expense.paymentMethod || UNSPECIFIED_METHOD_LABEL,
     }));
 }
 
@@ -127,8 +127,8 @@ export function toCsv(rows: ExportRow[]): string {
         csvEscape(row.date),
         formatExportAmount(row.amount),
         csvEscape(row.category),
-        csvEscape(row.paymentMethod),
         csvEscape(row.description),
+        csvEscape(row.paymentMethod),
       ].join(","),
     ),
   ];
@@ -156,7 +156,7 @@ function applyPastelCell(cell: ExcelJS.Cell, hex: string): void {
 }
 
 function autoWidthColumns(sheet: ExcelJS.Worksheet): void {
-  const minWidths = [12, 10, 12, 16, 14];
+  const minWidths = [12, 10, 12, 14, 16];
   sheet.columns.forEach((column, index) => {
     let max = minWidths[index] ?? 10;
     column.eachCell?.({ includeEmpty: false }, (cell) => {
@@ -184,14 +184,14 @@ export async function toXlsx(rows: ExportRow[]): Promise<Buffer> {
       row.date,
       row.amount,
       row.category,
-      row.paymentMethod,
       row.description,
+      row.paymentMethod,
     ]);
     excelRow.eachCell((cell) => {
       cell.border = THIN_BORDER;
     });
     applyPastelCell(excelRow.getCell(3), categoryPastelHex(row.category));
-    applyPastelCell(excelRow.getCell(4), paymentMethodPastelHex(row.paymentMethod));
+    applyPastelCell(excelRow.getCell(5), paymentMethodPastelHex(row.paymentMethod));
   }
 
   autoWidthColumns(sheet);
