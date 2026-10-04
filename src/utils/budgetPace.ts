@@ -1,4 +1,9 @@
-export type PaceStatusKind = "over" | "too_fast" | "on_track" | "under";
+export type PaceStatusKind =
+  | "over"
+  | "too_fast"
+  | "slightly_ahead"
+  | "on_track"
+  | "under";
 
 export interface BudgetPaceInput {
   spent: number;
@@ -18,21 +23,22 @@ export interface BudgetPace {
   statusText: string;
 }
 
-/** Points above expected usage before status flips to spending too fast. */
-export const PACE_BAND = 0.1;
+/** Rounded points either side of expected usage that still count as on track. */
+const ON_TRACK_SLACK_PCT = 1;
 
-/** Rounded points below expected usage that still count as on track. */
-const UNDER_ON_TRACK_SLACK_PCT = 1;
+/** Highest rounded points above expected usage that stay a mild warning. */
+const SLIGHTLY_AHEAD_MAX_PCT = 8;
 
 /**
  * Linear expected spend: by day D of a month with N days, expected usage is D/N.
  * actual = spent / monthlyBudget. Remaining is not clamped (can be negative).
- * Status uses rounded usage and expected percents on the slow side.
+ * Pace status uses rounded usage and expected percents.
  *
- * - over:     spent > monthlyBudget
- * - too_fast: actual > expected + PACE_BAND (0.10)
- * - under:    rounded usage is more than 1 point below rounded expected
- * - on_track: otherwise (including exactly 1 rounded point under expected)
+ * - over:            spent > monthlyBudget
+ * - too_fast:        rounded usage is 9 or more points above rounded expected
+ * - slightly_ahead:  rounded usage is 2 to 8 points above rounded expected
+ * - under:           rounded usage is more than 1 point below rounded expected
+ * - on_track:        otherwise (1 point below through 1 point above)
  */
 export function computeBudgetPace(input: BudgetPaceInput): BudgetPace {
   const { spent, monthlyBudget, dayOfMonth, daysInMonth } = input;
@@ -47,12 +53,16 @@ export function computeBudgetPace(input: BudgetPaceInput): BudgetPace {
     : 100;
   const expectedPct = Math.round(expectedFraction * 100);
 
+  const gapPct = usagePct - expectedPct;
+
   let statusKind: PaceStatusKind;
   if (spent > monthlyBudget) {
     statusKind = "over";
-  } else if (actualFraction > expectedFraction + PACE_BAND) {
+  } else if (gapPct > SLIGHTLY_AHEAD_MAX_PCT) {
     statusKind = "too_fast";
-  } else if (usagePct < expectedPct - UNDER_ON_TRACK_SLACK_PCT) {
+  } else if (gapPct > ON_TRACK_SLACK_PCT) {
+    statusKind = "slightly_ahead";
+  } else if (gapPct < -ON_TRACK_SLACK_PCT) {
     statusKind = "under";
   } else {
     statusKind = "on_track";
@@ -95,6 +105,8 @@ function paceStatusText(
       return expectedFraction < 0.5
         ? `Spending faster than the month — ${usagePct}% used with most of the month left.`
         : `Spending faster than the month — ${usagePct}% used.`;
+    case "slightly_ahead":
+      return "A little ahead of the month — worth slowing down.";
     case "on_track":
       return "On track for this point in the month.";
     case "under":
