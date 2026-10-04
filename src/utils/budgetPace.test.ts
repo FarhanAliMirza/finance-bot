@@ -25,17 +25,32 @@ describe("computeBudgetPace", () => {
     expect(pace.statusKind).toBe("too_fast");
   });
 
-  it("treats late-month 90% used as on track", () => {
+  it("treats late-month 90% used as under pace", () => {
     const pace = computeBudgetPace({
       spent: 13500,
       monthlyBudget: 15000,
       dayOfMonth: 31,
       daysInMonth: 31,
     });
-    expect(pace.statusKind).toBe("on_track");
+    expect(pace.expectedPct).toBe(100);
+    expect(pace.statusKind).toBe("under");
     expect(pace.usagePct).toBe(90);
     expect(pace.remaining).toBe(1500);
-    expect(pace.statusText).toBe("On track for this point in the month.");
+    expect(pace.statusText).toBe(
+      "Nice — you're under pace, with room to spare.",
+    );
+  });
+
+  it("treats the last day at 99% used as on track", () => {
+    const pace = computeBudgetPace({
+      spent: 14850,
+      monthlyBudget: 15000,
+      dayOfMonth: 31,
+      daysInMonth: 31,
+    });
+    expect(pace.expectedPct).toBe(100);
+    expect(pace.usagePct).toBe(99);
+    expect(pace.statusKind).toBe("on_track");
   });
 
   it("marks over-budget when spent exceeds monthly budget", () => {
@@ -82,6 +97,37 @@ describe("computeBudgetPace", () => {
     });
     expect(pace.statusKind).toBe("under");
     expect(pace.remaining).toBe(15000);
+    expect(pace.statusText).toBe(
+      "Nice — you're under pace, with room to spare.",
+    );
+  });
+
+  it("treats two points under expected usage as under pace", () => {
+    const pace = computeBudgetPace({
+      spent: 1200,
+      monthlyBudget: 15000,
+      dayOfMonth: 3,
+      daysInMonth: 30,
+    });
+    expect(pace.expectedPct).toBe(10);
+    expect(pace.usagePct).toBe(8);
+    expect(pace.statusKind).toBe("under");
+    expect(pace.statusText).toBe(
+      "Nice — you're under pace, with room to spare.",
+    );
+  });
+
+  it("treats one point under expected usage as on track", () => {
+    const pace = computeBudgetPace({
+      spent: 1350,
+      monthlyBudget: 15000,
+      dayOfMonth: 3,
+      daysInMonth: 30,
+    });
+    expect(pace.expectedPct).toBe(10);
+    expect(pace.usagePct).toBe(9);
+    expect(pace.statusKind).toBe("on_track");
+    expect(pace.statusText).toBe("On track for this point in the month.");
   });
 
   it("does not flip on tiny deviations from expected", () => {
