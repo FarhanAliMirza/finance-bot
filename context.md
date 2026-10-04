@@ -109,14 +109,14 @@ Telegram's `/` menu lists only `/today`, `/week`, `/last`, and `/delete`. The ot
 | `/week` | Monday through today: category breakdown, total, count, largest spend, payment-method breakdown. Download buttons when not empty |
 | `/month` | 1st through today: category breakdown, total, count, largest spend, daily average, payment-method breakdown. Download buttons when not empty |
 | `/export` | Download a period. Default is this month as CSV. `excel` or `xlsx` selects Excel. Period can be `today`, `week`, `month`, one ISO date, or two inclusive ISO dates. Empty period: `No expenses in this period.` and no file |
-| `/methods` | This month's amount and count per Cash, Card, UPI, plus Unspecified when present |
+| `/methods` | This month's amount and count for each payment method that has expenses, sorted by amount. Methods with no spend are omitted. Unspecified appears only when some rows have no method |
 | `/budget` | Monthly budget, spent, remaining (can be negative), usage percent, pace line. No row: tells the user to `/setBudget` |
 | `/setBudget <amount>` | Create or update the monthly budget. During the budget onboarding step, a valid amount also finishes onboarding |
 | `/setTimezone` | Show the current timezone. `/setTimezone <IANA>` sets it. Unknown names are rejected |
 | `/last` | Up to the last 5 expenses, newest first, plus their combined total |
 | `/delete` | Delete the most recent expense. Nothing to delete gets a short notice |
 
-Export files are one row per expense, oldest first: Date, Amount, Category, Payment method, Description. Dates are inclusive in the user's timezone. Excel cells use category and payment-method colors.
+Export files are one row per expense, oldest first: Date, Amount, Category, Description, Payment method. Dates are inclusive in the user's timezone. Excel cells use category and payment-method colors.
 
 ## Budget pace
 
