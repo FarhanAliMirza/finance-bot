@@ -130,15 +130,55 @@ describe("computeBudgetPace", () => {
     expect(pace.statusText).toBe("On track for this point in the month.");
   });
 
-  it("does not flip on tiny deviations from expected", () => {
+  it("treats one point above expected usage as on track", () => {
     const pace = computeBudgetPace({
-      spent: 7800,
+      spent: 1650,
       monthlyBudget: 15000,
-      dayOfMonth: 15,
+      dayOfMonth: 3,
       daysInMonth: 30,
     });
-    expect(pace.usagePct).toBe(52);
+    expect(pace.expectedPct).toBe(10);
+    expect(pace.usagePct).toBe(11);
     expect(pace.statusKind).toBe("on_track");
+    expect(pace.statusText).toBe("On track for this point in the month.");
+  });
+
+  it("treats two through eight points above expected as slightly ahead", () => {
+    const twoAbove = computeBudgetPace({
+      spent: 1800,
+      monthlyBudget: 15000,
+      dayOfMonth: 3,
+      daysInMonth: 30,
+    });
+    expect(twoAbove.expectedPct).toBe(10);
+    expect(twoAbove.usagePct).toBe(12);
+    expect(twoAbove.statusKind).toBe("slightly_ahead");
+    expect(twoAbove.statusText).toBe(
+      "A little ahead of the month — worth slowing down.",
+    );
+
+    const eightAbove = computeBudgetPace({
+      spent: 2700,
+      monthlyBudget: 15000,
+      dayOfMonth: 3,
+      daysInMonth: 30,
+    });
+    expect(eightAbove.expectedPct).toBe(10);
+    expect(eightAbove.usagePct).toBe(18);
+    expect(eightAbove.statusKind).toBe("slightly_ahead");
+  });
+
+  it("treats nine points above expected as too fast", () => {
+    const pace = computeBudgetPace({
+      spent: 2850,
+      monthlyBudget: 15000,
+      dayOfMonth: 3,
+      daysInMonth: 30,
+    });
+    expect(pace.expectedPct).toBe(10);
+    expect(pace.usagePct).toBe(19);
+    expect(pace.statusKind).toBe("too_fast");
+    expect(pace.statusText).toContain("most of the month left");
   });
 
   it("projects remaining and usage as if extra spend were included", () => {
