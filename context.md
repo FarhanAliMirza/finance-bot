@@ -122,12 +122,13 @@ Export files are one row per expense, oldest first: Date, Amount, Category, Desc
 
 Used on `/budget` and on the confirmation after a save, only when a monthly budget exists.
 
-Expected usage is day-of-month / days-in-month. Spending faster than that line flips only after 10 percentage points. On the slow side, one rounded point under expected stays on track; two or more points under is under pace.
+Expected usage is day-of-month / days-in-month. Status uses the rounded usage percent minus that rounded expected percent.
 
 - Over the monthly limit
-- Faster than the month (usage above expected + 10 points)
-- On track (including exactly 1 rounded point under expected)
-- Under pace (rounded usage more than 1 point below rounded expected): `Nice — you're under pace, with room to spare.`
+- Faster than the month (9 or more points above expected). Early in the month the line also says most of the month is left
+- Slightly ahead (2 through 8 points above): `A little ahead of the month — worth slowing down.`
+- On track (1 point below through 1 point above)
+- Under pace (more than 1 point below): `Nice — you're under pace, with room to spare.`
 
 ## AI boundary
 
