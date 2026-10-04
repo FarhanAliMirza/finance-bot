@@ -18,17 +18,21 @@ export interface BudgetPace {
   statusText: string;
 }
 
-/** ±10 percentage points around expected usage so tiny day-to-day diffs don't flip status. */
+/** Points above expected usage before status flips to spending too fast. */
 export const PACE_BAND = 0.1;
+
+/** Rounded points below expected usage that still count as on track. */
+const UNDER_ON_TRACK_SLACK_PCT = 1;
 
 /**
  * Linear expected spend: by day D of a month with N days, expected usage is D/N.
  * actual = spent / monthlyBudget. Remaining is not clamped (can be negative).
+ * Status uses rounded usage and expected percents on the slow side.
  *
  * - over:     spent > monthlyBudget
  * - too_fast: actual > expected + PACE_BAND (0.10)
- * - under:    actual < expected - PACE_BAND
- * - on_track: otherwise (including last-day ~90% used, and day-1 with no spend)
+ * - under:    rounded usage is more than 1 point below rounded expected
+ * - on_track: otherwise (including exactly 1 rounded point under expected)
  */
 export function computeBudgetPace(input: BudgetPaceInput): BudgetPace {
   const { spent, monthlyBudget, dayOfMonth, daysInMonth } = input;
@@ -48,7 +52,7 @@ export function computeBudgetPace(input: BudgetPaceInput): BudgetPace {
     statusKind = "over";
   } else if (actualFraction > expectedFraction + PACE_BAND) {
     statusKind = "too_fast";
-  } else if (actualFraction < expectedFraction - PACE_BAND) {
+  } else if (usagePct < expectedPct - UNDER_ON_TRACK_SLACK_PCT) {
     statusKind = "under";
   } else {
     statusKind = "on_track";
@@ -94,6 +98,6 @@ function paceStatusText(
     case "on_track":
       return "On track for this point in the month.";
     case "under":
-      return "Under pace — plenty of budget left for the rest of the month.";
+      return "Nice — you're under pace, with room to spare.";
   }
 }

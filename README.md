@@ -310,7 +310,7 @@ View your monthly budget and current spending status:
 
 - `On track for this point in the month.`
 - `Spending faster than the month — …% used.` (early-month variant mentions most of the month left)
-- `Under pace — plenty of budget left for the rest of the month.`
+- `Nice — you're under pace, with room to spare.` (more than 1 rounded point under expected; exactly 1 point under stays on track)
 - `Over by ₹…` when spent is over the monthly limit (remaining can be negative)
 
 ```
